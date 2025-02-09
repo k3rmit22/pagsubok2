@@ -1,0 +1,101 @@
+﻿<Window x:Class="kiosk_snapprint.ColorConfirmationModal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Color Confirmation"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen"
+        Height="300"
+        Width="600"
+        Background="#FFFAFAFA">
+    <Border CornerRadius="20" 
+            Background="#FFFAFAFA" 
+            BorderBrush="#FFCCCCCC" 
+            BorderThickness="2" 
+            Padding="10">
+        <Grid Margin="0,-2,0,2">
+            <TextBlock Text="We detected that your PDF file has colored content. Do you want to print in Color or Greyscale?" 
+                       FontSize="20" 
+                       FontWeight="Bold" 
+                       TextWrapping="Wrap" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Top" 
+                       Margin="10,20,10,0"/>
+
+            <StackPanel Orientation="Horizontal" 
+                        HorizontalAlignment="Center" 
+                        VerticalAlignment="Bottom" 
+                        Margin="0,10,0,20">
+                <!-- Colored Button -->
+                <Button x:Name="ColoredButton"
+                        Content="Colored"
+                        Width="229"
+                        Height="114"
+                        Margin="5"
+                        FontSize="22"
+                        VerticalAlignment="Center"
+                        Click="YesButton_Click"
+                        FontWeight="Bold"
+                        FontFamily="Franklin Gothic Demi Cond">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonBorder"
+                                    Background="Black"
+                                    CornerRadius="20"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="2">
+                                <ContentPresenter x:Name="ButtonContent"
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center" 
+                                                  TextBlock.Foreground="White" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <!-- Hover Trigger -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="White" />
+                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="Black" />
+                                    <Setter TargetName="ButtonContent" Property="TextBlock.Foreground" Value="Black" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Greyscale Button -->
+                <Button x:Name="GreyscaleButton"
+                        Content="Greyscale"
+                        Width="229"
+                        Height="114"
+                        Margin="5"
+                        FontSize="22"
+                        VerticalAlignment="Center"
+                        Click="NoButton_Click"
+                        FontWeight="Bold"
+                        FontFamily="Franklin Gothic Demi Cond">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="ButtonBorder"
+                                    Background="Black"
+                                    CornerRadius="20"
+                                    BorderBrush="Transparent"
+                                    BorderThickness="2">
+                                <ContentPresenter x:Name="ButtonContent"
+                                                  HorizontalAlignment="Center" 
+                                                  VerticalAlignment="Center" 
+                                                  TextBlock.Foreground="White" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <!-- Hover Trigger -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="ButtonBorder" Property="Background" Value="White" />
+                                    <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="Black" />
+                                    <Setter TargetName="ButtonContent" Property="TextBlock.Foreground" Value="Black" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
