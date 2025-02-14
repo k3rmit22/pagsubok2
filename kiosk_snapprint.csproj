@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <None Remove="flashdrive.png" />
+    <None Remove="GcashQR.png" />
     <None Remove="insert-coin.png" />
     <None Remove="passcode.png" />
     <None Remove="pdficon.png" />
@@ -44,6 +45,7 @@
     <Content Include="insert-coin.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Resource Include="GcashQR.png" />
     <Resource Include="printing_gif.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Resource>

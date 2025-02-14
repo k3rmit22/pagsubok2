@@ -20,7 +20,7 @@
                     Width="310" 
                     Height="360"
                     Margin="0,0,0,0">
-            <Image x:Name="QRCodeImage" Height="350" Width="270" Stretch="UniformToFill" Source="/5d0b1444-6281-4437-8724-9875d62cac53.jpg" />
+            <Image x:Name="QRCodeImage" Height="344" Width="267" Stretch="UniformToFill" Source="/GcashQR.png" />
 
             <!-- Confirm Payment Button -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0"/>
