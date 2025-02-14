@@ -22,7 +22,7 @@
                     Width="310" 
                     Height="360"
                     Margin="0,0,0,0">
-            <Image x:Name="QRCodeImage" Height="255" Width="270" Stretch="UniformToFill" />
+            <Image x:Name="QRCodeImage" Height="350" Width="270" Stretch="UniformToFill" Source="/5d0b1444-6281-4437-8724-9875d62cac53.jpg" />
 
             <!-- Confirm Payment Button -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0"/>
