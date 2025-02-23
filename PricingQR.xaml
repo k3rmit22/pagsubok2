@@ -56,15 +56,15 @@
 
                 <!-- Number of Copies -->
                 <TextBlock Text="Color: " 
-                    FontSize="15"  
+                    FontSize="20"  
                     HorizontalAlignment="Center" 
                     VerticalAlignment="Stretch"
                     Margin="0,0,0,10" 
                     FontWeight="Bold" />
                 <TextBlock x:Name="color_label"
-                    FontSize="15" 
+                    FontSize="20" 
                     Margin="0,0,0,10" 
-                    FontWeight="Bold" Width="133" Height="27" />
+                    FontWeight="Bold" Width="133" Height="30" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" 
@@ -73,42 +73,39 @@
 
                 <!-- Number of Copies -->
                 <TextBlock Text="Selected pages: " 
-                    FontSize="15" 
+                    FontSize="20"
                     VerticalAlignment="Stretch"
                     Margin="0,0,0,10" 
                     FontWeight="Bold" Height="28" />
                 <TextBlock x:Name="selected_pages_label" 
-                    FontSize="15" 
+                    FontSize="20" 
                     Margin="0,0,0,10" 
                     FontWeight="Bold" Width="165" Height="27" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" 
-                     HorizontalAlignment="Left" 
-                     VerticalAlignment="Center"
-                     Margin="0,0,0,20" Width="195">
+                     HorizontalAlignment="Left"
+                     Margin="0,0,0,20" Width="308">
 
                 <!-- Number of Copies -->
                 <TextBlock Text="Page Size: " 
-                     FontSize="15"  
+                     FontSize="20"  
                      HorizontalAlignment="Center" 
                      VerticalAlignment="Stretch"
-                     Margin="0,0,0,10" 
-                     FontWeight="Bold" />
+                     Margin="0,0,0,10" FontWeight="Bold" />
                 <TextBlock x:Name="pagesize_label" 
                     FontSize="20" 
                     Margin="0,0,0,10" 
-                    FontWeight="Bold" Width="122" Height="27" />
+                    FontWeight="Bold" Width="205" Height="27" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" 
-                HorizontalAlignment="Left" 
-                VerticalAlignment="Center"
-                Margin="0,0,0,20" Width="195">
+                HorizontalAlignment="Left"
+                Margin="0,0,0,20" Width="310">
 
                 <!-- Number of Copies -->
                 <TextBlock Text="Copies: " 
-                     FontSize="15"  
+                     FontSize="20"  
                      HorizontalAlignment="Center" 
                      VerticalAlignment="Stretch"
                      Margin="0,0,0,10" 
@@ -116,25 +113,26 @@
                 <TextBlock x:Name="Copies_label" 
                       FontSize="20" 
                       Margin="0,0,0,10" 
-                      FontWeight="Bold" Width="122" Height="27" />
+                      FontWeight="Bold" Width="237" Height="27" />
             </StackPanel>
 
             <StackPanel Orientation="Horizontal" 
-                     HorizontalAlignment="Left" 
-                     VerticalAlignment="Center"
-                    Margin="0,0,0,20" Width="195">
+                     HorizontalAlignment="Left"
+                    Margin="0,0,0,20" Width="310">
 
 
                 <TextBlock Text="To Pay: " 
-                     FontSize="15"  
+                     FontSize="30"  
                      HorizontalAlignment="Center" 
                      VerticalAlignment="Stretch"
                      Margin="0,0,0,10" 
                      FontWeight="Bold" />
                 <TextBlock x:Name="total_label" 
-                    FontSize="20" 
-                     Margin="0,0,0,10" 
-                     FontWeight="Bold" Width="122" Height="27"/>
+                    FontSize="30" 
+                    HorizontalAlignment="Center" 
+                    VerticalAlignment="Stretch"
+                    Margin="0,0,0,10" 
+                    FontWeight="Bold" Width="187" Height="41"/>
             </StackPanel>
 
 

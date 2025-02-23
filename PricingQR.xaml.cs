@@ -166,8 +166,8 @@ namespace kiosk_snapprint
                     fileName: FileName,
                     pageSize: PageSize,
                     colorStatus: ColorStatus,
-                    numberOfSelectedPages: NumberOfSelectedPages,   
-                    copyCount: CopyCount,                
+                    numberOfSelectedPages: NumberOfSelectedPages,
+                    copyCount: CopyCount,
                     selectedPages: SelectedPages,
                     pageCount: Pagecount
                 );

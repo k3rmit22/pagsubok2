@@ -153,7 +153,7 @@ namespace kiosk_snapprint
             try
             {
                 // Initialize payment serial port
-                _serialPort = new SerialPort("COM8", 115200);
+                _serialPort = new SerialPort("COM4", 115200);
                 _serialPort.DataReceived += SerialPort_DataReceived;
 
                 if (!_serialPort.IsOpen)
@@ -163,7 +163,7 @@ namespace kiosk_snapprint
                 }
 
                 // Initialize second hardware serial port (e.g., servo)
-                _secondSerialPort = new SerialPort("COM9", 115200);
+                _secondSerialPort = new SerialPort("COM5", 115200);
 
                 if (!_secondSerialPort.IsOpen)
                 {

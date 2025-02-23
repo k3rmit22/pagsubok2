@@ -31,7 +31,7 @@ namespace kiosk_snapprint
 
         private void DisplayHotspotQRCode()
         {
-            string hotspotDetails = "WIFI:S:SnapPrint_Hotspot;T:WPA;P:password123;;";
+            string hotspotDetails = "WIFI:S:SnapPrintKiosk;T:WPA;P:123456789;;";
             Bitmap qrCodeImage = GenerateQRCode(hotspotDetails);
             QrCodeforhotspot.Source = BitmapToImageSource(qrCodeImage);
         }

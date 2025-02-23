@@ -29,7 +29,7 @@ namespace kiosk_snapprint
                     // Call an asynchronous method to write to the serial port
                     await Task.Run(() => SecondSerialPort.WriteLine(cancelCommand));
 
-                    Debug.WriteLine($"Sent command to hardware via COM9: {cancelCommand}");
+                    Debug.WriteLine($"Sent command to hardware via COM5: {cancelCommand}");
                 }
                 catch (Exception ex)
                 {

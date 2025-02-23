@@ -82,7 +82,7 @@ namespace kiosk_snapprint
       
 
         private void LoadPdf(string filePath)
-        {
+        { 
             try
             {
                 if (!string.IsNullOrEmpty(filePath) && System.IO.File.Exists(filePath))

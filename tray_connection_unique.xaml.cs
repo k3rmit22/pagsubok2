@@ -31,7 +31,7 @@ namespace kiosk_snapprint
             TotalPrice = totalPrice;
 
             // Initialize SerialPort with the correct COM port and baud rate
-            serialPort = new SerialPort("COM3", 9600, Parity.None, 8, StopBits.One);
+            serialPort = new SerialPort("COM6", 9600, Parity.None, 8, StopBits.One);
             serialPort.Open();
         }
 
@@ -49,6 +49,10 @@ namespace kiosk_snapprint
             else if (PageSize == "Long")
             {
                 pageSizeValue = 3; // Set to 3 if PageSize is Long
+            }
+            else if (PageSize == "Letter (Short)")
+            {
+                pageSizeValue = 1; // Set to 1 if PageSize is Letter (Short)
             }
 
             // Calculate the number of selected pages (this is just the count of SelectedPages)
