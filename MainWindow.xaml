@@ -9,7 +9,7 @@
  ResizeMode="CanResize"
  Topmost="True"
  Height="1080" 
- Width="1900" WindowStartupLocation="CenterScreen" WindowStyle="ThreeDBorderWindow" WindowState="Normal">
+ Width="1900" WindowStartupLocation="CenterScreen" WindowStyle="None" WindowState="Maximized">
 
     <Grid>
         <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" />

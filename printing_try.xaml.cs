@@ -44,6 +44,7 @@ namespace kiosk_snapprint
             Task.Run(() => StartPrintingAsync(FilePath));
         }
 
+        //lagyan ng timer tanggalin yung message box
         private async Task StartPrintingAsync(string filePath)
         {
             try
