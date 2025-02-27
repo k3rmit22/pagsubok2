@@ -115,12 +115,12 @@ namespace kiosk_snapprint
                     }
 
                     // Print completed message
-                    MessageBox.Show("Document printed successfully based on the copy count.", "Printing", MessageBoxButton.OK, MessageBoxImage.Information);
+                    NavigateToHome();
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred while printing: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                NavigateToHome();
             }
             finally
             {

@@ -10,6 +10,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
+
 namespace kiosk_snapprint
 {
     
@@ -26,6 +28,7 @@ namespace kiosk_snapprint
             Loaded += MainWindow_Loaded;
             MainContent.Content = new HomeUserControl();
             pdfDisplayInstance = null;
+
 
 
         }

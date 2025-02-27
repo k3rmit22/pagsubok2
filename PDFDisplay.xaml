@@ -7,8 +7,30 @@
              xmlns:local="clr-namespace:kiosk_snapprint"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    
-    
+
+    <UserControl.Resources>
+        <Style x:Key="LargeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="20"/>
+            <!-- Make text bigger -->
+            <Setter Property="MinHeight" Value="20"/>
+            <!-- Set checkbox minimum height -->
+            <Setter Property="MinWidth" Value="20"/>
+            <!-- Set checkbox minimum width -->
+            <Setter Property="Padding" Value="5"/>
+            <!-- Increase padding -->
+            <Setter Property="Margin" Value="5"/>
+            <!-- Add spacing -->
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.8" ScaleY="1.8"/>
+                    <!-- Make the whole checkbox larger -->
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+
+
     <Grid Background="White">
         <!-- Define Columns -->
         <Grid.ColumnDefinitions>
@@ -20,7 +42,12 @@
         <syncfusion:PdfViewerControl x:Name="pdfViewer" 
                                      Grid.Column="0"
                                      FontSize="12" 
-                                     Margin="10" ZoomMode="FitPage" />
+                                     Margin="10" ZoomMode="FitPage" Loaded="PdfViewerControl_Loaded" 
+                             ShowToolbar="False" EnableRedactionTool="False" 
+                                     EnableNotificationBar="False" 
+                                     EnableLayers="False" 
+                                     IsBookmarkEnabled="False" 
+                                     />
 
         <!-- Preferences Panel -->
         <StackPanel Grid.Column="1" 
@@ -43,11 +70,12 @@
                        FontWeight="Bold" />
 
             <!-- StackPanel for checkboxes -->
-            <ScrollViewer Width="202" Height="137" Margin="10">
+            <ScrollViewer Width="274" Height="171" Margin="10">
                 <StackPanel x:Name="PageSelectionStackPanel" >
                     <!-- Dynamically generated checkboxes will be added here -->
                 </StackPanel>
             </ScrollViewer>
+            
 
             <StackPanel Orientation="Horizontal" 
                      HorizontalAlignment="Center" 

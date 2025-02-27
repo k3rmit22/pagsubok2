@@ -58,7 +58,7 @@ namespace kiosk_snapprint
                 Dispatcher.Invoke(() =>
                 {
                     ShowLoading(false);
-                    MessageBox.Show("Printing started successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                  
                     NavigateToHomeUserControl();
                 });
             }
@@ -67,7 +67,7 @@ namespace kiosk_snapprint
                 Dispatcher.Invoke(() =>
                 {
                     ShowLoading(false);
-                    MessageBox.Show($"An error occurred while printing: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                   
                     NavigateToHomeUserControl(); // Navigate to HomeUserControl even if there's an error
                 });
             }
@@ -129,7 +129,7 @@ namespace kiosk_snapprint
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            MessageBox.Show($"Page {pageIndex} is out of range.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                            NavigateToHomeUserControl();
                         });
                     }
                 }
@@ -138,7 +138,7 @@ namespace kiosk_snapprint
             {
                 Dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show($"An error occurred while printing: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    NavigateToHomeUserControl();
                 });
             }
             finally

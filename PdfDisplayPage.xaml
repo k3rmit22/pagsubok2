@@ -5,44 +5,71 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             d:DesignHeight="1080" d:DesignWidth="1900">
+             d:DesignHeight="450" d:DesignWidth="800">
 
-    <Grid>
+    <UserControl.Resources>
+        <Style x:Key="LargeCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="FontSize" Value="20"/>
+            <!-- Make text bigger -->
+            <Setter Property="MinHeight" Value="20"/>
+            <!-- Set checkbox minimum height -->
+            <Setter Property="MinWidth" Value="20"/>
+            <!-- Set checkbox minimum width -->
+            <Setter Property="Padding" Value="5"/>
+            <!-- Increase padding -->
+            <Setter Property="Margin" Value="5"/>
+            <!-- Add spacing -->
+            <Setter Property="LayoutTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1.8" ScaleY="1.8"/>
+                    <!-- Make the whole checkbox larger -->
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="White">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="3*" />
-            <ColumnDefinition Width="2.8*" />
+            <ColumnDefinition Width="2*" />
         </Grid.ColumnDefinitions>
 
 
         <!-- Syncfusion PdfViewerControl -->
-        <syncfusion:PdfViewerControl x:Name="PdfViewerControl" HorizontalAlignment="Left" 
-                                        VerticalAlignment="Top" FontSize="12" Width="890" Margin="35,10,0,0" Height="1065" ZoomMode="FitPage"/>
+        <syncfusion:PdfViewerControl x:Name="PdfViewerControl"  
+                                         FontSize="12" Margin="10" ZoomMode="FitPage" 
+                                     Loaded="PdfViewerControl_Loaded" 
+                                     ShowToolbar="False"  EnableRedactionTool="False" 
+                                     EnableNotificationBar="False" 
+                                     EnableLayers="False" 
+                                     IsBookmarkEnabled="False"/>
 
 
         <!-- Preferences Panel -->
-        <StackPanel Grid.Column="1" Margin="150,182,0,0" VerticalAlignment="Top" HorizontalAlignment="Center" Height="610" Width="490">
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"  Background="#F5F5F5" Height="357" Width="310">
             <!-- Preferences Header -->
-            <TextBlock Text="Step 3:Preferences" FontSize="50" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,40" />
+            <TextBlock Text="Step 3:Preferences" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30" />
 
             <!-- Select Page to Print -->
-            <TextBlock Text="Select pages to print" FontSize="24" HorizontalAlignment="Center" Margin="0,0,0,20" FontWeight="Bold" />
+            <TextBlock Text="Select pages to print" FontSize="20" HorizontalAlignment="Center" Margin="0,0,0,10" FontWeight="Bold" />
 
             <!-- StackPanel for checkboxes -->
-            <ScrollViewer Width="279" Height="184" Margin="10">
+            <ScrollViewer Width="274" Height="137" Margin="10">
                 <StackPanel x:Name="PageSelectionStackPanel">
                     <!-- Dynamically generated checkboxes will be added here -->
                 </StackPanel>
             </ScrollViewer>
 
-        </StackPanel>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="150,628,0,0" RenderTransformOrigin="0.125,0.617">
+        
+        <StackPanel  Orientation="Horizontal" HorizontalAlignment="Center"  Margin="0,10,0,0">
             <!-- Back Button -->
-            <Button x:Name="BackButton" Content="BACK" Height="60" FontSize="24" Width="165" FontWeight="Bold" 
-                Click="BackButton_Click" Margin="0,0,20,0" />
+            <Button x:Name="BackButton" Content="Back" Height="45" FontSize="20" Width="100" FontWeight="Bold" 
+                Click="BackButton_Click" Margin="10,0,0,0" />
 
             <!-- Next Button -->
-            <Button x:Name="ProceedButton" Content="NEXT" Height="60" FontSize="24" Width="165" FontWeight="Bold" 
-                Click="PROCEED_Click" />
+            <Button x:Name="ProceedButton" Content="Next" Height="45" FontSize="20" Width="100" FontWeight="Bold" 
+                Click="PROCEED_Click"  Margin="10,0,0,0"/>
+            </StackPanel>
         </StackPanel>
 
 

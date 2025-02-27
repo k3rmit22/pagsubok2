@@ -29,6 +29,7 @@ namespace kiosk_snapprint
             InitializeComponent();
 
 
+
             // Store the file details
             FilePath = filePath;
             FileName = fileName;
@@ -36,11 +37,24 @@ namespace kiosk_snapprint
             PageCount = pageCount;
             Colorstatus = colorstatus;
 
+
+
             // Initialize the copy count display
             pdfViewer.ZoomMode = Syncfusion.Windows.PdfViewer.ZoomMode.FitPage;
 
+
             PopulatePageCheckboxes(filePath);
         }
+
+        private void PdfViewerControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            pdfViewer.ToolbarSettings = null; // Ensure toolbar settings are disabled
+            pdfViewer.ThumbnailSettings.IsVisible = false;
+            pdfViewer.PageOrganizerSettings.IsIconVisible = false;
+
+
+        }
+
 
         public void UpdatePdfDetails(string filePath, string fileName, string pageSize, int pageCount, string colorStatus)
         {
@@ -129,6 +143,7 @@ namespace kiosk_snapprint
                 // Add event handlers for the "Select All Pages" checkbox
                 selectAllCheckBox.Checked += SelectAllCheckBox_Checked;
                 selectAllCheckBox.Unchecked += SelectAllCheckBox_Unchecked;
+                selectAllCheckBox.Style = (System.Windows.Style)FindResource("LargeCheckBoxStyle");
 
                 // Add the "Select All Pages" checkbox to the StackPanel
                 PageSelectionStackPanel.Children.Add(selectAllCheckBox);
@@ -150,6 +165,7 @@ namespace kiosk_snapprint
                         // Add event handlers for checking/unchecking individual checkboxes
                         pageCheckBox.Checked += PageCheckBox_Checked;
                         pageCheckBox.Unchecked += PageCheckBox_Unchecked;
+                        pageCheckBox.Style = (System.Windows.Style)FindResource("LargeCheckBoxStyle");
 
                         // Add the CheckBox to the StackPanel
                         PageSelectionStackPanel.Children.Add(pageCheckBox);
@@ -286,6 +302,11 @@ namespace kiosk_snapprint
 
             // Navigate to the default UserControl (e.g., HomeUserControl)
             mainWindow.MainContent.Content = new HomeUserControl(); // Replace with your actual default UserControl
+        }
+
+        private void pdfViewer_PageRotated(object sender, PageRotatedEventArgs e)
+        {
+
         }
     }
 

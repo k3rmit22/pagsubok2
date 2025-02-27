@@ -31,6 +31,10 @@ namespace kiosk_snapprint
 
             // Initialize the PdfViewerControl
             _pdfViewerControl = new PdfViewerControl();
+
+            _pdfViewerControl.HorizontalAlignment = HorizontalAlignment.Stretch;
+            _pdfViewerControl.VerticalAlignment = VerticalAlignment.Stretch;
+
             PdfContainer.Children.Add(_pdfViewerControl);  // Assuming you have a container named PdfContainer in XAML
             _previousPage = previousPage; // Store the previous page instance
 
@@ -72,6 +76,8 @@ namespace kiosk_snapprint
 
             
         }
+
+
 
         // Method to access the stored file bytes
         public byte[] GetFileBytes()

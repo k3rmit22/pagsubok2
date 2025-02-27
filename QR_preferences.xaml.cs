@@ -79,7 +79,16 @@ namespace kiosk_snapprint
 
         }
 
-      
+        private void PdfViewerControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            pdfViewer.ToolbarSettings = null; // Ensure toolbar settings are disabled
+            pdfViewer.ThumbnailSettings.IsVisible = false;
+            pdfViewer.PageOrganizerSettings.IsIconVisible = false;
+
+
+        }
+
+
 
         private void LoadPdf(string filePath)
         { 

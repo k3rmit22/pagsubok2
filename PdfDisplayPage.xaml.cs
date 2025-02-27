@@ -37,6 +37,14 @@ namespace kiosk_snapprint
 
         }
 
+        private void PdfViewerControl_Loaded(object sender, RoutedEventArgs e)
+        {
+            PdfViewerControl.ToolbarSettings = null; // Ensure toolbar settings are disabled
+            PdfViewerControl.ThumbnailSettings.IsVisible = false;
+            PdfViewerControl.PageOrganizerSettings.IsIconVisible = false;
+
+        }
+
         private void DisplayPdf(byte[] fileBytes, string fileName)
         {
             try
@@ -173,12 +181,15 @@ namespace kiosk_snapprint
             CheckBox selectAllCheckBox = new CheckBox
             {
                 Content = "Select All Pages",
-                FontSize = 25,
+                FontSize = 15,
                 Tag = "SelectAll"
+
             };
 
             selectAllCheckBox.Checked += SelectAllCheckBox_Checked;
             selectAllCheckBox.Unchecked += SelectAllCheckBox_Unchecked;
+            selectAllCheckBox.Style = (System.Windows.Style)FindResource("LargeCheckBoxStyle");
+
             PageSelectionStackPanel.Children.Add(selectAllCheckBox);
 
             // Create a checkbox for each page
@@ -187,12 +198,14 @@ namespace kiosk_snapprint
                 CheckBox pageCheckBox = new CheckBox
                 {
                     Content = $"Page {i}",
-                    FontSize = 25,
+                    FontSize = 15,
                     Tag = i
                 };
 
                 pageCheckBox.Checked += PageCheckBox_Checked;
                 pageCheckBox.Unchecked += PageCheckBox_Unchecked;
+                pageCheckBox.Style = (System.Windows.Style)FindResource("LargeCheckBoxStyle");
+
                 PageSelectionStackPanel.Children.Add(pageCheckBox);
             }
         }
@@ -317,4 +330,6 @@ namespace kiosk_snapprint
         private int _copyCount = 1;
         private const int _maxCopies = 10;
     }
+
+
 }
