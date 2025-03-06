@@ -111,10 +111,12 @@ namespace kiosk_snapprint
                                 inserted_amount_label.Text = $"{_insertedAmount:F2}";
                                 Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
 
+
+                                Debug.WriteLine($"[emailport] Received Amount: {_insertedAmount}");
                                 // Store inserted amount in TransactionData
                                 TransactionData.InsertAmount(_insertedAmount);
 
-
+                               
 
                                 CheckForPaymentCompletion();
                             });
@@ -200,7 +202,7 @@ namespace kiosk_snapprint
                             inserted_amount_label.Text = $"{_insertedAmount:F2}";
                             Debug.WriteLine($"Amount updated: {_insertedAmount}");
 
-
+                            Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
 
