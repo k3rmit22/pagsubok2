@@ -41,10 +41,10 @@
                  VerticalAlignment="Center" 
                  HorizontalAlignment="Left" 
                  Background="#F5F5F5" 
-                 Width="310" 
-                 Height="444" Margin="45,0,0,0">
+                 Width="360" 
+                 Height="444" Margin="35,0,0,0">
             <!-- Preferences Header -->
-            <TextBlock Text="Step 5: Check  &#xA;Order Summary" 
+            <TextBlock Text="Step 5: Check Order Summary. &#xA; Please, don't insert payment yet." 
                     FontSize="20" 
                     FontWeight="Bold" 
                     HorizontalAlignment="Center" 
