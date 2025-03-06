@@ -34,7 +34,7 @@
                     Width="350" 
                     Height="426">
             <!-- Preferences Header -->
-            <TextBlock Text="Step 5: Check &#xA;Order Summary" 
+            <TextBlock Text="Step 6: Payment" 
                       FontSize="20" 
                       FontWeight="Bold" 
                       HorizontalAlignment="Center" 
