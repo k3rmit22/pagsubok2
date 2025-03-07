@@ -29,7 +29,7 @@
         <StackPanel Grid.Column="1" 
                     VerticalAlignment="Center" 
                     HorizontalAlignment="Center" 
-                    Background="#F5F5F5" 
+                    Background="White" 
                     Width="310" 
                     Height="240">
             <!-- Preferences Header -->

@@ -20,7 +20,7 @@
         <StackPanel 
           VerticalAlignment="Center" 
           HorizontalAlignment="Right" 
-          Background="#F5F5F5" 
+          Background="White" 
           Width="310" 
           Height="330" Margin="0,0,45,0">
             <Image Height="250" Width="250" Source="/pdficon.png"/>
@@ -40,7 +40,7 @@
         <StackPanel Grid.Column="1" 
                  VerticalAlignment="Center" 
                  HorizontalAlignment="Left" 
-                 Background="#F5F5F5" 
+                 Background="White" 
                  Width="360" 
                  Height="444" Margin="35,0,0,0">
             <!-- Preferences Header -->

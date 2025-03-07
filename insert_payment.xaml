@@ -8,7 +8,7 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Unloaded="UserControl_Unloaded">
 
-    <Grid Background="#FFFFF7F7">
+    <Grid Background="White">
         <!-- Define Columns -->
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />

@@ -142,7 +142,7 @@
 
             <!-- Image at the top center -->
 
-            <Image Source="/passcode.png" Margin="630,110,630,495" Grid.RowSpan="2" />
+            <Image Source="/passcode.png" Margin="628,-35,598,640" Grid.RowSpan="2" />
 
 
             <!-- Label centered in the second row -->
@@ -150,27 +150,26 @@
                HorizontalAlignment="Left" 
                VerticalAlignment="Top" 
                    HorizontalContentAlignment="Center"
-               FontSize="40" 
+               FontSize="72" 
                FontWeight="Bold" 
-               Margin="580,362,0,0" Height="73" Width="760" Grid.Row="1"/>
+               Margin="285,245,0,0" Height="120" Width="1440" Grid.Row="1"/>
 
             <!-- TextBox centered in the second row -->
             <TextBox x:Name="TxtBox" Grid.Row="1" 
                  HorizontalAlignment="Left" 
-                 VerticalAlignment="Top" 
-                 Height="75" 
-                 Width="285" 
-                 Margin="815,460,0,0" 
-                 TextWrapping="Wrap" FontSize="40" FontWeight="Bold" BorderBrush="Black" BorderThickness="5,5,5,5 " TextChanged="TextBox_TextChanged"/>
+                 Height="140" 
+                 Width="725" 
+                 Margin="600,465,0,0" 
+                 TextWrapping="Wrap" FontSize="72" FontWeight="Bold" BorderBrush="Black" BorderThickness="5,5,5,5 " TextChanged="TextBox_TextChanged" VerticalAlignment="Top"/>
 
             <!-- Proceed Button centered at the bottom -->
             <Button x:Name="Proceed" Style="{DynamicResource RoundedButtonStyle}" Content="PROCEED" 
                 Grid.Row="1" 
                 HorizontalAlignment="Left" 
                 VerticalAlignment="Top" 
-                Height="115" 
-                Width="290" 
-                Margin="815,610,0,0" FontSize="40" FontWeight="Bold" Background="#FFFDFDFD" BorderBrush="Black" BorderThickness="5,5,5,5" Click="Proceed_Click"/>
+                Height="155" 
+                Width="380" 
+                Margin="785,730,0,0" FontSize="40" FontWeight="Bold" Background="#FFFDFDFD" BorderBrush="Black" BorderThickness="5,5,5,5" Click="Proceed_Click"/>
             <Button Style="{DynamicResource RoundedButtonStyleback}"  Content="Back"  HorizontalAlignment="Left" VerticalAlignment="Top" 
                 Width="200" Height="115" Click="BackButton_Click" Margin="20,15,0,0" FontWeight="Bold" FontSize="40" BorderBrush="Black" Background="White" Foreground="#FF080808" BorderThickness="5,5,5,5"
                 />

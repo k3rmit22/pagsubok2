@@ -46,7 +46,7 @@
 
 
         <!-- Preferences Panel -->
-        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"  Background="#F5F5F5" Height="357" Width="310">
+        <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Center"  Background="White" Height="357" Width="310">
             <!-- Preferences Header -->
             <TextBlock Text="Step 3:Preferences" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,30" />
 
