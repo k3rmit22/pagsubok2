@@ -14,7 +14,7 @@ namespace kiosk_snapprint
 
         public static void InsertAmount(decimal amount)
         {
-            InsertedAmount += amount; // Add money when inserted.
+            InsertedAmount = amount; // Add money when inserted.
             Debug.WriteLine($"[TransactionData] InsertedAmount updated: {InsertedAmount}"); // ✅ Log amount
         }
 
