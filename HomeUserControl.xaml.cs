@@ -23,6 +23,8 @@ namespace kiosk_snapprint
         public HomeUserControl()
         {
             InitializeComponent();
+            TransactionData.Reset();
+
         }
 
         private void GoToQRCodePage_Click(object sender, RoutedEventArgs e)

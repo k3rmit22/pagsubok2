@@ -17,7 +17,7 @@ namespace kiosk_snapprint
 
         public static void InsertAmount(decimal amount)
         {
-            InsertedAmount += amount; // Add money when inserted.
+            InsertedAmount = amount; // Add money when inserted.
             Debug.WriteLine($"[TransactionData] InsertedAmount updated: {InsertedAmount}"); // ✅ Log amount
         }
 
@@ -28,13 +28,11 @@ namespace kiosk_snapprint
             Debug.WriteLine($"[TransactionData] EmailPaymentAmount updated: {EmailPaymentAmount}");
         }
 
-        public static decimal GetAndResetInsertedAmount()
+        public static void Reset()
         {
-            decimal amount = InsertedAmount;
-            InsertedAmount = 0.00m; // Reset for the next transaction
-            Debug.WriteLine($"[TransactionData] InsertedAmount reset to: {InsertedAmount}"); // ✅ Log after reset
-
-            return amount;
+            InsertedAmount = 0.00m;
+            EmailPaymentAmount = 0.00m;
+            Debug.WriteLine($"[TransactionData] Reset: InsertedAmount={InsertedAmount}, EmailPaymentAmount={EmailPaymentAmount}");
         }
 
     }
