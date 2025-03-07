@@ -107,16 +107,14 @@ namespace kiosk_snapprint
                         {
                             Dispatcher.Invoke(() =>
                             {
+                                TransactionData.InsertAmount((decimal)amount);
                                 _insertedAmount += (int)amount;
                                 inserted_amount_label.Text = $"{_insertedAmount:F2}";
                                 Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
 
 
-                                Debug.WriteLine($"[emailport] Received Amount: {_insertedAmount}");
-                                // Store inserted amount in TransactionData
-                                TransactionData.InsertAmount(_insertedAmount);
 
-                               
+                             
 
                                 CheckForPaymentCompletion();
                             });
@@ -198,13 +196,15 @@ namespace kiosk_snapprint
                     {
                         Dispatcher.Invoke(() =>
                         {
+                            TransactionData.InsertAmount(_insertedAmount);
+
                             _insertedAmount = amount;
                             inserted_amount_label.Text = $"{_insertedAmount:F2}";
                             Debug.WriteLine($"Amount updated: {_insertedAmount}");
 
                             Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             // Store inserted amount in TransactionData
-                            TransactionData.InsertAmount(_insertedAmount);
+                           
 
                             CheckForPaymentCompletion();
                         });
