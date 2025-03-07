@@ -107,19 +107,17 @@ namespace kiosk_snapprint
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                _insertedAmount += (int)amount;
+                                _insertedAmount += (int)amount; // Add instead of replace
                                 inserted_amount_label.Text = $"{_insertedAmount:F2}";
-                                Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
+                                Debug.WriteLine($"[Email Payment] New Inserted Amount: {_insertedAmount}");
 
-
-                                Debug.WriteLine($"[emailport] Received Amount: {_insertedAmount}");
                                 // Store inserted amount in TransactionData
-                                TransactionData.InsertAmount((decimal)amount);
+                                TransactionData.InsertAmount(_insertedAmount);
 
-
-
+                                // Check if payment is completed
                                 CheckForPaymentCompletion();
                             });
+
 
                             // Mark the email as read (Seen) so it is not retrieved again
                             await inbox.AddFlagsAsync(results[results.Count - 1], MessageFlags.Seen, true);
@@ -194,18 +192,18 @@ namespace kiosk_snapprint
 
                 if (int.TryParse(data, out int amount))
                 {
-                    if (amount >= 0)
+                    if (amount > 0)
                     {
                         Dispatcher.Invoke(() =>
                         {
-                            _insertedAmount = amount;
+                            _insertedAmount += amount; // Add instead of replace
                             inserted_amount_label.Text = $"{_insertedAmount:F2}";
-                            Debug.WriteLine($"Amount updated: {_insertedAmount}");
+                            Debug.WriteLine($"[SerialPort] New Inserted Amount: {_insertedAmount}");
 
-                            Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
 
+                            // Check if payment is completed
                             CheckForPaymentCompletion();
                         });
                     }
@@ -221,11 +219,12 @@ namespace kiosk_snapprint
             }
         }
 
+
         private bool paymentCompleted = false;
 
         private void CheckForPaymentCompletion()
         {
-            // Check if the inserted amount meets or exceeds the total price and payment hasn't been completed already
+            // Check if the total inserted amount (coin/bill + online) meets or exceeds the required amount
             if (_insertedAmount >= TotalPrice && !paymentCompleted)
             {
                 // Mark payment as completed to prevent multiple triggers
@@ -237,13 +236,13 @@ namespace kiosk_snapprint
                 // Send command to servo to move to 180 degrees
                 SendServoCommand("servo0");
 
-                // Optionally, you can disable any UI elements like buttons to prevent further payment actions
-                // For example: payButton.IsEnabled = false;
+                Debug.WriteLine($"[Payment Completed] Total Inserted Amount: {_insertedAmount}");
 
                 // Proceed to the next step (navigate to the tray connection window)
                 NavigateTotrayconnection();
             }
         }
+
 
 
 
