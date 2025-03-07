@@ -114,7 +114,7 @@ namespace kiosk_snapprint
                                 Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
 
 
-                               
+                                Debug.WriteLine($"[Email Payment] Added: {amount:F2}, Total Now: {TransactionData.TotalAmount:F2}");
 
 
 
@@ -206,6 +206,8 @@ namespace kiosk_snapprint
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
 
+                            Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
+                            Debug.WriteLine($"[TransactionData] Total Amount: {TransactionData.TotalAmount}");
 
                             CheckForPaymentCompletion();
                         });
