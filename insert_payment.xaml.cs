@@ -195,7 +195,7 @@ namespace kiosk_snapprint
 
                 if (int.TryParse(data, out int amount))
                 {
-                    if (amount > 0)
+                    if (amount >= 0)
                     {
                         Dispatcher.Invoke(() =>
                         {
