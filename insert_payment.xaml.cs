@@ -81,61 +81,60 @@ namespace kiosk_snapprint
         }
 
         private async Task CheckForPaymentEmail()
+{
+    try
+    {
+        using (var client = new ImapClient())
         {
-            try
+            await client.ConnectAsync(gmailHost, gmailPort, true);
+            await client.AuthenticateAsync(username, password);
+
+            var inbox = client.Inbox;
+            await inbox.OpenAsync(FolderAccess.ReadWrite); // Open in ReadWrite mode to mark emails as seen
+
+            // Search for unread emails containing the GCash payment message from a specific sender
+            var query = SearchQuery.FromContains("jiyuyuyuji@gmail.com")
+                .And(SearchQuery.BodyContains("You have received the money in GCash!"))
+                .And(SearchQuery.NotSeen);
+
+            var results = await inbox.SearchAsync(query);
+
+            if (results.Count > 0)
             {
-                using (var client = new ImapClient())
+                var message = await inbox.GetMessageAsync(results[results.Count - 1]); // Get the latest message
+                string body = message.TextBody;
+
+                // Parse the email body to find the inserted amount
+                double amount = ParseAmountFromEmailBody(body);
+                if (amount > 0)
                 {
-                    await client.ConnectAsync(gmailHost, gmailPort, true);
-                    await client.AuthenticateAsync(username, password);
-
-                    var inbox = client.Inbox;
-                    await inbox.OpenAsync(FolderAccess.ReadWrite); // Open in ReadWrite mode to mark emails as seen
-
-                    // Search for unread emails containing the GCash payment message
-                    var query = SearchQuery.BodyContains("You have received the money in GCash!").And(SearchQuery.NotSeen);
-                    var results = await inbox.SearchAsync(query);
-
-                    if (results.Count > 0)
+                    Dispatcher.Invoke(() =>
                     {
-                        var message = await inbox.GetMessageAsync(results[results.Count - 1]); // Get the latest message
-                        string body = message.TextBody;
+                        TransactionData.AddEmailPayment((decimal)amount);
 
-                        // Parse the email body to find the inserted amount
-                        double amount = ParseAmountFromEmailBody(body);
-                        if (amount > 0)
-                        {
-                            Dispatcher.Invoke(() =>
-                            {
-                                TransactionData.AddEmailPayment((decimal)amount);
+                        // Update the UI with the new total amount
+                        inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
+                        Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
+                        Debug.WriteLine($"[Email Payment] Added: {amount:F2}, Total Now: {TransactionData.TotalAmount:F2}");
 
-                                // Update the UI with the new total amount
-                                inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
-                                Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
+                        CheckForPaymentCompletion();
+                    });
 
-
-                                Debug.WriteLine($"[Email Payment] Added: {amount:F2}, Total Now: {TransactionData.TotalAmount:F2}");
-
-
-
-                                CheckForPaymentCompletion();
-                            });
-
-
-                            // Mark the email as read (Seen) so it is not retrieved again
-                            await inbox.AddFlagsAsync(results[results.Count - 1], MessageFlags.Seen, true);
-                            Debug.WriteLine("Marked email as read (Seen).");
-                        }
-                    }
-
-                    await client.DisconnectAsync(true);
+                    // Mark the email as read (Seen) so it is not retrieved again
+                    await inbox.AddFlagsAsync(results[results.Count - 1], MessageFlags.Seen, true);
+                    Debug.WriteLine("Marked email as read (Seen).");
                 }
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error checking email: {ex.Message}");
-            }
+
+            await client.DisconnectAsync(true);
         }
+    }
+    catch (Exception ex)
+    {
+        Debug.WriteLine($"Error checking email: {ex.Message}");
+    }
+}
+
 
 
         // Method to parse the inserted amount from the email body
