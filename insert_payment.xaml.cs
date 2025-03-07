@@ -107,14 +107,14 @@ namespace kiosk_snapprint
                         {
                             Dispatcher.Invoke(() =>
                             {
-                                _insertedAmount += (int)amount;
-                                inserted_amount_label.Text = $"{_insertedAmount:F2}";
+                                TransactionData.AddEmailPayment((decimal)amount);
+
+                                // Update the UI with the new total amount
+                                inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
                                 Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
 
 
-                                Debug.WriteLine($"[emailport] Received Amount: {_insertedAmount}");
-                                // Store inserted amount in TransactionData
-                                TransactionData.InsertAmount((decimal)amount);
+                               
 
 
 
@@ -199,12 +199,13 @@ namespace kiosk_snapprint
                         Dispatcher.Invoke(() =>
                         {
                             _insertedAmount = amount;
-                            inserted_amount_label.Text = $"{_insertedAmount:F2}";
+                            inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
                             Debug.WriteLine($"Amount updated: {_insertedAmount}");
 
                             Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
+
 
                             CheckForPaymentCompletion();
                         });
@@ -225,8 +226,9 @@ namespace kiosk_snapprint
 
         private void CheckForPaymentCompletion()
         {
+
             // Check if the inserted amount meets or exceeds the total price and payment hasn't been completed already
-            if (_insertedAmount >= TotalPrice && !paymentCompleted)
+            if (TransactionData.TotalAmount >= (decimal)TotalPrice && !paymentCompleted)
             {
                 // Mark payment as completed to prevent multiple triggers
                 paymentCompleted = true;
@@ -291,43 +293,6 @@ namespace kiosk_snapprint
             total_label.Text = $"{totalPrice:F2}";
         }
 
-        //private async void NavigateToPrintingTryWindow()
-        //{
-        //    try
-        //    {
-        //        // Introduce a 3-second delay
-        //        await Task.Delay(3000);
-
-        //        // Create a new instance of the printing_try window
-        //        printing_try printingWindow = new printing_try(
-        //            filePath: FilePath,
-        //            fileName: FileName,
-        //            pageSize: PageSize,
-        //            pageCount: PageCount,
-        //            colorStatus: ColorStatus,
-        //            numberOfSelectedPages: NumberOfSelectedPages,
-        //            copyCount: CopyCount,
-        //            selectedPages: SelectedPages,
-        //            totalPrice: TotalPrice
-        //        );
-
-        //        // Set the owner of the modal to the current main window
-        //        printingWindow.Owner = Application.Current.MainWindow;
-
-        //        // Show the window as a modal
-        //        printingWindow.ShowDialog();
-
-        //        // After modal closes, you can perform additional logic here if needed
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        // Handle any errors that occur
-        //        MessageBox.Show($"An error occurred while opening the printing window: {ex.Message}",
-        //                        "Error",
-        //                        MessageBoxButton.OK,
-        //                        MessageBoxImage.Error);
-        //    }
-        //}
 
         private async void NavigateTotrayconnection()
         {
