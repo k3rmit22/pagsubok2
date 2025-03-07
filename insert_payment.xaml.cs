@@ -200,14 +200,19 @@ namespace kiosk_snapprint
                         Dispatcher.Invoke(() =>
                         {
                             _insertedAmount = amount;
-                            inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
-                            Debug.WriteLine($"Amount updated: {_insertedAmount}");
 
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
 
+                           
                             Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             Debug.WriteLine($"[TransactionData] Total Amount: {TransactionData.TotalAmount}");
+
+                            inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
+                           
+
+                            
+
 
                             CheckForPaymentCompletion();
                         });
