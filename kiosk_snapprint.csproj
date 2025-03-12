@@ -6,6 +6,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Product>$(AssemblyName)</Product>
+    <PackageIcon>wow.png</PackageIcon>
+    <AssemblyName>SnapPrint</AssemblyName>
+    <ApplicationIcon>wow.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,7 +21,6 @@
     <None Remove="printing_gif.gif" />
     <None Remove="scanner.png" />
     <None Remove="white-back-icon-17.jpg" />
-    <None Remove="wow.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -46,6 +49,7 @@
     <Content Include="insert-coin.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="wow.ico" />
     <Resource Include="GcashQR.png" />
     <Resource Include="printing_gif.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -55,6 +59,13 @@
     <Resource Include="scanner.png" />
     <Resource Include="white-back-icon-17.jpg" />
     <Resource Include="wow.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="wow.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>

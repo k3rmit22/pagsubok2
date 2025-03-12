@@ -21,7 +21,7 @@
                     Background="White" 
                     Width="310" 
                     Height="379">
-            <Image Height="359" Width="282" Source="/GcashQR.png" Stretch="UniformToFill"/>
+            <Image Height="359" Width="296" Source="C:\Users\kalaw\Source\Repos\pagsubok2\yuji.jpg" Stretch="UniformToFill"/>
         </StackPanel>
 
         <!-- Second StackPanel with TextBlocks and Button -->
