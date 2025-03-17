@@ -15,11 +15,11 @@ namespace kiosk_snapprint
         public string ColorMode { get; }
         public List<int> SelectedPages { get; }
         public int CopyCount { get; }
-        public int TotalPrice { get; }
+        public double TotalPrice { get; }
 
         private SerialPort serialPort;
 
-        public tray_connection_unique(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, int totalPrice)
+        public tray_connection_unique(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, double totalPrice)
         {
             InitializeComponent();
             FileBytes = fileBytes;

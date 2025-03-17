@@ -2,6 +2,15 @@
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
+using PdfiumViewer;
+
+using System.Drawing.Imaging;
+using System.IO;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using SD = System.Drawing;
+using SWC = System.Windows.Controls;
+using System.Drawing;
 
 namespace kiosk_snapprint
 {
@@ -18,18 +27,7 @@ namespace kiosk_snapprint
 
         public double TotalPrice { get; set; }
 
-        private readonly Dictionary<string, int> ColorStatusValues = new Dictionary<string, int>
-        {
-            { "colored", 10 },
-            { "greyscale", 5 }
-        };
-
-        private readonly Dictionary<string, int> PageSizeValues = new Dictionary<string, int>
-        {
-            { "a4", 5 },
-            { "letter (short)", 5 },
-            { "legal (long)", 10 }
-        };
+      
 
         public PricingQR(string filePath, string fileName, string pageSize, string colorStatus,
             int numberOfSelectedPages, int copyCount, List<int> selectedPages, int pageCount)
@@ -47,7 +45,7 @@ namespace kiosk_snapprint
             SelectedPages = selectedPages;
 
             // Load summary and display data
-            LoadSummary(FileName, PageSize, ColorStatus, SelectedPages, CopyCount);
+            LoadSummary(FilePath,FileName, PageSize, ColorStatus, SelectedPages, CopyCount);
         }
 
         public void SetFileName(string fileName)
@@ -59,13 +57,13 @@ namespace kiosk_snapprint
             }
         }
 
-        private void LoadSummary(string fileName, string pageSize, string colorStatus, List<int> selectedPages, int copyCount)
+        private void LoadSummary(string filepath,string fileName, string pageSize, string colorStatus, List<int> selectedPages, int copyCount)
         {
-            // Normalize input values (automatically convert to lowercase and trim spaces)
+            
+            System.Diagnostics.Debug.WriteLine("LoadSummary CALLED!");
             string normalizedPageSize = NormalizePageSize(pageSize);
             string normalizedColorStatus = NormalizeColorStatus(colorStatus);
 
-            // Display data
             filename.Text = fileName;
             color_label.Text = normalizedColorStatus;
             pagesize_label.Text = normalizedPageSize;
@@ -73,17 +71,204 @@ namespace kiosk_snapprint
 
             if (selected_pages_label != null && selectedPages != null)
             {
-                // Display the selected pages as a comma-separated string
                 selected_pages_label.Text = string.Join(", ", selectedPages);
             }
 
-            // Compute the total price using your logic and set the TotalPrice property
-            double totalPrice = ComputeTotalPrice(normalizedColorStatus, selectedPages.Count, copyCount);
-            TotalPrice = totalPrice;  // Set TotalPrice property
+            // ✅ Fix: Pass filePath correctly
+            double totalPrice = ComputeTotalPrice(filepath, normalizedColorStatus, selectedPages, copyCount);
+            TotalPrice = totalPrice;
 
-            // Display the total price
             total_label.Text = $"{totalPrice}";
         }
+
+
+        private double ComputeTotalPrice(string filePath, string colorStatus, List<int> selectedPages, int copyCount)
+        {
+            System.Diagnostics.Debug.WriteLine($"ComputeTotalPrice CALLED! FilePath: {filePath}, ColorStatus: {colorStatus}, Copies: {copyCount}");
+
+            if (selectedPages == null || selectedPages.Count == 0)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: No pages selected for printing.");
+                return 0.0;
+            }
+
+            double totalCost = 0.0;
+            System.Diagnostics.Debug.WriteLine($"Opening PDF file: {filePath}");
+
+            using (var pdfDocument = PdfDocument.Load(filePath))
+            {
+                foreach (int pageIndex in selectedPages)
+                {
+                    int actualPageIndex = pageIndex - 1; // Convert 1-based index to 0-based
+
+                    System.Diagnostics.Debug.WriteLine($"Processing page {actualPageIndex}...");
+
+                    if (actualPageIndex >= 0 && actualPageIndex < pdfDocument.PageCount)
+                    {
+                        double inkCost = AnalyzeInkUsage(pdfDocument, actualPageIndex, colorStatus);
+                        System.Diagnostics.Debug.WriteLine($"Page {pageIndex}: Ink Cost = {inkCost}");
+
+                        totalCost += inkCost;
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error: Page {pageIndex} is out of range.");
+                    }
+                }
+            }
+
+            double finalTotal = Math.Ceiling(totalCost * copyCount);
+            System.Diagnostics.Debug.WriteLine($"Final Total Cost: {finalTotal}");
+            return finalTotal;
+        }
+
+
+
+        private double AnalyzeInkUsage(PdfDocument pdfDocument, int pageIndex, string colorStatus)
+        {
+            if (pdfDocument == null)
+            {
+                System.Diagnostics.Debug.WriteLine("Error: pdfDocument is null.");
+                return 0.0;
+            }
+
+            using (SD.Image pageImage = pdfDocument.Render(pageIndex, 300, 300, true))
+            {
+                if (pageImage == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error: Page {pageIndex} did not render properly.");
+                    return 0.0;
+                }
+
+                using (SD.Bitmap bitmap = new SD.Bitmap(pageImage))
+                {
+                    int blackPixelCount = 0;
+                    int colorPixelCount = 0;
+                    int totalPixelCount = bitmap.Width * bitmap.Height;
+
+                    System.Diagnostics.Debug.WriteLine($"Page {pageIndex} - Width: {bitmap.Width}, Height: {bitmap.Height}, Total Pixels: {totalPixelCount}");
+
+                    if (totalPixelCount == 0) return 0.0;
+
+                    // Detect if the page is image-heavy
+                    bool hasLargeImages = DetectLargeImages(bitmap);
+
+                    // Lock the bitmap for faster pixel processing
+                    BitmapData bitmapData = bitmap.LockBits(
+                        new SD.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                        ImageLockMode.ReadOnly,
+                        PixelFormat.Format32bppArgb
+                    );
+
+                    IntPtr scan0 = bitmapData.Scan0;
+                    int stride = bitmapData.Stride;
+                    int bytesPerPixel = SD.Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                    byte[] pixelBuffer = new byte[stride * bitmap.Height];
+
+                    Marshal.Copy(scan0, pixelBuffer, 0, pixelBuffer.Length);
+
+                    // Process pixels
+                    for (int y = 0; y < bitmap.Height; y++)
+                    {
+                        for (int x = 0; x < bitmap.Width; x++)
+                        {
+                            int index = (y * stride) + (x * bytesPerPixel);
+                            byte b = pixelBuffer[index];
+                            byte g = pixelBuffer[index + 1];
+                            byte r = pixelBuffer[index + 2];
+
+                            bool isBlackPixel = (r < 50 && g < 50 && b < 50); // Dark pixel (black ink)
+                            bool isColorPixel = (Math.Abs(r - g) > 20 || Math.Abs(r - b) > 20 || Math.Abs(g - b) > 20); // Detect color variation
+
+                            if (isBlackPixel)
+                                blackPixelCount++;
+                            if (isColorPixel)
+                                colorPixelCount++;
+                        }
+                    }
+
+                    bitmap.UnlockBits(bitmapData);
+
+                    double blackInkRatio = (double)blackPixelCount / totalPixelCount;
+                    double colorInkRatio = (double)colorPixelCount / totalPixelCount;
+
+                    // Determine the final cost based on ink usage and page type
+                    double finalCost = 0.0;
+
+                    if (colorStatus == "greyscale")
+                    {
+                        if (blackInkRatio < 0.02) // Mostly text-only
+                        {
+                            finalCost = 3.0;
+                        }
+                        else if (blackInkRatio < 0.1) // Small images
+                        {
+                            finalCost = 3.0 + (blackInkRatio * 7.5); // Adjusts within ₱3-₱4.5
+                        }
+                        else // Image-heavy
+                        {
+                            finalCost = Math.Min(5.0, 4.5 + (blackInkRatio * 2.0)); // ₱4.5 - ₱5
+                        }
+                    }
+                    else // Colored pages
+                    {
+                        if (colorInkRatio < 0.02) // Mostly text-only with small highlights
+                        {
+                            finalCost = 4.0; // Lowered price for low-color text pages
+                        }
+                        else if (colorInkRatio < 0.1) // Medium image usage
+                        {
+                            finalCost = 5.0 + (colorInkRatio * 7.5); // Adjusts within ₱4 - ₱6
+                        }
+                        else // High color usage
+                        {
+                            finalCost = Math.Min(8.0, 6.5 + (colorInkRatio * 3.0)); // ₱6.5 - ₱8
+                        }
+                    }
+
+                    System.Diagnostics.Debug.WriteLine($"Page {pageIndex}: Black Ink Ratio = {blackInkRatio}, Color Ink Ratio = {colorInkRatio}, Final Cost = {finalCost}, Has Large Images = {hasLargeImages}");
+                    return finalCost;
+                }
+            }
+        }
+
+
+        private bool DetectLargeImages(Bitmap bitmap)
+        {
+            int imageThreshold = (bitmap.Width * bitmap.Height) / 3;  // 33% threshold
+            int nonWhitePixels = 0;
+            int totalPixels = bitmap.Width * bitmap.Height;
+
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    SD.Color pixel = bitmap.GetPixel(x, y);
+                    bool isColorPixel = !(pixel.R == pixel.G && pixel.G == pixel.B); // Color pixel check
+                    bool isDarkPixel = (pixel.R < 180 && pixel.G < 180 && pixel.B < 180);
+
+                    if (isColorPixel || isDarkPixel)
+                    {
+                        nonWhitePixels++;
+                    }
+                }
+            }
+
+            return nonWhitePixels > imageThreshold;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         private string NormalizePageSize(string pageSize)
         {
@@ -97,31 +282,7 @@ namespace kiosk_snapprint
             return colorStatus?.Trim().ToLower();
         }
 
-        private double ComputeTotalPrice(string colorStatus, int numberOfSelectedPages, int copyCount)
-        {
-            // Log the incoming color status for debugging purposes
-            System.Diagnostics.Debug.WriteLine($"Computing total price for color status: {colorStatus}");
-
-            // Check if the colorStatus exists in the dictionary
-            if (ColorStatusValues.TryGetValue(colorStatus, out int colorValue))
-            {
-                // Formula: Color Value * Number of Selected Pages * Copy Count
-                double totalPrice = colorValue * numberOfSelectedPages * copyCount;
-
-                // Log the computed price for debugging purposes
-                System.Diagnostics.Debug.WriteLine($"Total Price: {totalPrice}");
-
-                return totalPrice;
-            }
-            else
-            {
-                // Log an error or warning if the colorStatus is not found
-                System.Diagnostics.Debug.WriteLine($"Invalid color status: {colorStatus}. Returning 0.0 as default.");
-
-                // Return 0.0 or handle a default value if the color status is invalid
-                return 0.0;
-            }
-        }
+      
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {

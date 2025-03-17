@@ -1,18 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using PdfiumViewer;
+
+using System.Drawing.Imaging;
+using System.IO;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using SD = System.Drawing;
+using SWC = System.Windows.Controls;
+using System.Drawing;
+
 
 namespace kiosk_snapprint
 {
@@ -27,6 +26,8 @@ namespace kiosk_snapprint
         public List<int> SelectedPages { get; set; }
         public int CopyCount { get; set; }
         public byte[] FileBytes { get; set; } // Added property for fileBytes
+
+        public double TotalPrice { get; set; }
 
         public uniquePreferences _previousPage;  // Field to hold reference to the previous page
 
@@ -69,6 +70,11 @@ namespace kiosk_snapprint
         // Loaded event handler
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
+
+            System.Diagnostics.Debug.WriteLine("LoadSummary CALLED!");
+            string normalizedPageSize = NormalizePageSize(PageSize);
+            string normalizedColorStatus = NormalizeColorStatus(ColorMode);
+
             // Set the UI elements with the values passed in the constructor
             filename.Text = FileName; // Display the file name
             color_label.Text = ColorMode; // Display the color mode
@@ -76,66 +82,168 @@ namespace kiosk_snapprint
             selected_pages_label.Text = string.Join(", ", SelectedPages); // Display the selected pages as a comma-separated list
             Copies_label.Text = CopyCount.ToString(); // Display the copy count
 
-            try
-            {
-                // Get the numeric value for ColorMode
-                int colorModeValue = GetColorModeValue(ColorMode);
 
                 // Use colorModeValue in calculations
-                int totalPrice = CalculateTotalPrice(ColorMode, SelectedPages, CopyCount);
-
+                double totalPrice = CalculateTotalPrice(FileBytes, ColorMode, SelectedPages, CopyCount);
+                TotalPrice = totalPrice;
                 // Display the calculated total price (ensure TotalPriceLabel exists in the UI)
                 total_label.Text = totalPrice.ToString();
 
-                Console.WriteLine($"Color Mode: {ColorMode}, Numeric Value: {colorModeValue}, Total Price: {totalPrice}");
-            }
-            catch (ArgumentException ex)
-            {
-                Console.WriteLine($"Error: {ex.Message}");
-                color_label.Text = "Invalid Color Mode"; // Display an error message in the UI
-            }
-        }
-        public int GetColorModeValue(string colorMode)
-        {
-            // Normalize the input to prevent case sensitivity issues
-            if (colorMode.Equals("colored", StringComparison.OrdinalIgnoreCase))
-            {
-                return 10; // Return 10 for colored
-            }
-            else if (colorMode.Equals("greyscale", StringComparison.OrdinalIgnoreCase))
-            {
-                return 5; // Return 5 for greyscale
-            }
-            else
-            {
-                throw new ArgumentException("Invalid color mode value."); // Handle unexpected input
-            }
         }
 
-        public int CalculateTotalPrice(string colorMode, List<int> selectedPages, int copyCount)
+
+        private double CalculateTotalPrice(byte[] fileBytes, string colorStatus, List<int> selectedPages, int copyCount)
         {
-            // Determine the numeric value based on the ColorMode string
-            int colorModeValue = 0;
-
-            if (colorMode.Equals("colored", StringComparison.OrdinalIgnoreCase))
+            Debug.WriteLine("ComputeTotalPriceForUnique CALLED!");
+            if (selectedPages == null || selectedPages.Count == 0)
             {
-                colorModeValue = 10; // Colored pages have a value of 10
-            }
-            else if (colorMode.Equals("greyscale", StringComparison.OrdinalIgnoreCase))
-            {
-                colorModeValue = 5;  // Greyscale pages have a value of 5
-            }
-            else
-            {
-                // Handle invalid color mode (optional)
-                throw new ArgumentException("Invalid color mode.");
+                Debug.WriteLine("Error: No pages selected for printing.");
+                return 0.0;
             }
 
-            // Get the count of selected pages
-            int pageCount = selectedPages.Count;
+            double totalCost = 0.0;
 
-            // Calculate total price
-            return colorModeValue * pageCount * copyCount;
+            using (var pdfDocument = PdfDocument.Load(new MemoryStream(fileBytes)))
+            {
+                foreach (int pageIndex in selectedPages)
+                {
+                    int actualPageIndex = pageIndex - 1;
+                    Debug.WriteLine($"Processing page {actualPageIndex}...");
+
+                    if (actualPageIndex >= 0 && actualPageIndex < pdfDocument.PageCount)
+                    {
+                        double inkCost = AnalyzeInkUsage(pdfDocument, actualPageIndex, colorStatus);
+                        Debug.WriteLine($"Page {pageIndex}: Ink Cost = {inkCost}");
+                        totalCost += inkCost;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Error: Page {pageIndex} is out of range.");
+                    }
+                }
+            }
+
+            double finalTotal = Math.Ceiling(totalCost * copyCount);
+            Debug.WriteLine($"Final Total Cost: {finalTotal}");
+            return finalTotal;
+        }
+
+
+        private double AnalyzeInkUsage(PdfDocument pdfDocument, int pageIndex, string colorStatus)
+        {
+            if (pdfDocument == null)
+            {
+                Debug.WriteLine("Error: pdfDocument is null.");
+                return 0.0;
+            }
+
+            using (SD.Image pageImage = pdfDocument.Render(pageIndex, 300, 300, true))
+            {
+                if (pageImage == null)
+                {
+                    Debug.WriteLine($"Error: Page {pageIndex} did not render properly.");
+                    return 0.0;
+                }
+
+                using (SD.Bitmap bitmap = new SD.Bitmap(pageImage))
+                {
+                    int blackPixelCount = 0;
+                    int colorPixelCount = 0;
+                    int totalPixelCount = bitmap.Width * bitmap.Height;
+
+                    Debug.WriteLine($"Page {pageIndex} - Width: {bitmap.Width}, Height: {bitmap.Height}, Total Pixels: {totalPixelCount}");
+                    if (totalPixelCount == 0) return 0.0;
+
+                    bool hasLargeImages = DetectLargeImages(bitmap);
+                    BitmapData bitmapData = bitmap.LockBits(
+                        new SD.Rectangle(0, 0, bitmap.Width, bitmap.Height),
+                        ImageLockMode.ReadOnly,
+                        PixelFormat.Format32bppArgb
+                    );
+
+                    IntPtr scan0 = bitmapData.Scan0;
+                    int stride = bitmapData.Stride;
+                    int bytesPerPixel = SD.Image.GetPixelFormatSize(bitmap.PixelFormat) / 8;
+                    byte[] pixelBuffer = new byte[stride * bitmap.Height];
+
+                    Marshal.Copy(scan0, pixelBuffer, 0, pixelBuffer.Length);
+
+                    for (int y = 0; y < bitmap.Height; y++)
+                    {
+                        for (int x = 0; x < bitmap.Width; x++)
+                        {
+                            int index = (y * stride) + (x * bytesPerPixel);
+                            byte b = pixelBuffer[index];
+                            byte g = pixelBuffer[index + 1];
+                            byte r = pixelBuffer[index + 2];
+
+                            bool isBlackPixel = (r < 50 && g < 50 && b < 50);
+                            bool isColorPixel = (Math.Abs(r - g) > 20 || Math.Abs(r - b) > 20 || Math.Abs(g - b) > 20);
+
+                            if (isBlackPixel) blackPixelCount++;
+                            if (isColorPixel) colorPixelCount++;
+                        }
+                    }
+                    bitmap.UnlockBits(bitmapData);
+
+                    double blackInkRatio = (double)blackPixelCount / totalPixelCount;
+                    double colorInkRatio = (double)colorPixelCount / totalPixelCount;
+                    double finalCost = 0.0;
+
+                    if (colorStatus == "greyscale")
+                    {
+                        if (blackInkRatio < 0.02)
+                            finalCost = 3.0;
+                        else if (blackInkRatio < 0.1)
+                            finalCost = 3.0 + (blackInkRatio * 7.5);
+                        else
+                            finalCost = Math.Min(5.0, 4.5 + (blackInkRatio * 2.0));
+                    }
+                    else
+                    {
+                        if (colorInkRatio < 0.02)
+                            finalCost = 4.0;
+                        else if (colorInkRatio < 0.1)
+                            finalCost = 5.0 + (colorInkRatio * 7.5);
+                        else
+                            finalCost = Math.Min(8.0, 6.5 + (colorInkRatio * 3.0));
+                    }
+
+                    Debug.WriteLine($"Page {pageIndex}: Black Ink Ratio = {blackInkRatio}, Color Ink Ratio = {colorInkRatio}, Final Cost = {finalCost}, Has Large Images = {hasLargeImages}");
+                    return finalCost;
+                }
+            }
+        }
+
+        private bool DetectLargeImages(Bitmap bitmap)
+        {
+            int imageThreshold = (bitmap.Width * bitmap.Height) / 3;
+            int nonWhitePixels = 0;
+            int totalPixels = bitmap.Width * bitmap.Height;
+
+            for (int y = 0; y < bitmap.Height; y++)
+            {
+                for (int x = 0; x < bitmap.Width; x++)
+                {
+                    SD.Color pixel = bitmap.GetPixel(x, y);
+                    bool isColorPixel = !(pixel.R == pixel.G && pixel.G == pixel.B);
+                    bool isDarkPixel = (pixel.R < 180 && pixel.G < 180 && pixel.B < 180);
+                    if (isColorPixel || isDarkPixel) nonWhitePixels++;
+                }
+            }
+            return nonWhitePixels > imageThreshold;
+        }
+
+        private string NormalizePageSize(string pageSize)
+        {
+            return string.IsNullOrEmpty(pageSize) ? "default" : pageSize.Trim().ToLower();
+        }
+
+
+        private string NormalizeColorStatus(string colorStatus)
+        {
+            // Normalize: convert to lowercase and trim spaces
+            return colorStatus?.Trim().ToLower();
         }
 
 
@@ -144,7 +252,7 @@ namespace kiosk_snapprint
             try
             {
                 // Calculate the total price without converting color mode
-                int totalPrice = CalculateTotalPrice(ColorMode, SelectedPages, CopyCount); // Pass ColorMode directly
+                double totalPrice = CalculateTotalPrice(FileBytes,ColorMode, SelectedPages, CopyCount); // Pass ColorMode directly
 
                 // Create an instance of the next user control (FinalReview)
                 Uniquecode_insert_payment paymentPage = new Uniquecode_insert_payment(

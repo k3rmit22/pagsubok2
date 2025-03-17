@@ -26,7 +26,7 @@ namespace kiosk_snapprint
         public string ColorMode { get; set; }
         public List<int> SelectedPages { get; set; }
         public int CopyCount { get; set; }
-        public int TotalPrice { get; set; }
+        public double TotalPrice { get; set; }
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
@@ -41,7 +41,7 @@ namespace kiosk_snapprint
 
         private DispatcherTimer emailCheckTimer;
 
-        public Uniquecode_insert_payment(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, int totalPrice)
+        public Uniquecode_insert_payment(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, double totalPrice)
         {
             InitializeComponent();
             FileBytes = fileBytes;
