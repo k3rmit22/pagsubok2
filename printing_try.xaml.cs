@@ -8,6 +8,7 @@ using System.Drawing.Printing;
 using System.Net.Http;
 using System.Text;
 using PdfiumViewer;
+using iText.Commons.Utils;
 
 
 
@@ -67,7 +68,17 @@ namespace kiosk_snapprint
 
                 await Task.Run(() => PrintPdfFile(filePath)); // Run the printing task
 
-                await SendTransactionDataAsync(); // Send transaction data after printing
+                // Pass all required parameters to SendTransactionDataAsync
+                await SendTransactionDataAsync(
+                    FileName,
+                    PageSize,
+                    SelectedPages,
+                    ColorStatus,
+                    CopyCount,
+                    TotalPrice,
+                    Action,
+                    TotalAmount
+                ); // Send transaction data after printing
             }
             catch (Exception ex)
             {
@@ -163,7 +174,9 @@ namespace kiosk_snapprint
             LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private async Task SendTransactionDataAsync()
+        private async Task SendTransactionDataAsync(string fileName, string pageSize, List<int> selectedPages,
+                                             string colorStatus, int copyCount, double totalPrice,
+                                             string action, decimal totalAmount)
         {
             // Define your PHP API URL
             string url = "https://snapprintadmin.online/transaction.php"; // Replace with your actual API endpoint
@@ -171,14 +184,14 @@ namespace kiosk_snapprint
             // Prepare the JSON payload using the class properties
             var transactionData = new
             {
-                FileName = FileName,               // Maps to File_Name
-                PageSize = PageSize,               // Maps to Pagesize
-                SelectedPages = SelectedPages,     // Maps to selected_pages
-                ColorStatus = ColorStatus,         // Maps to COLOR_OF_PAPER
-                CopyCount = CopyCount,             // Maps to NUMBER_OF_COPIES
-                TotalAmount = TotalAmount,         // Maps to inserted_amount and total_income
-                Action = Action,                   // Maps to ACTION
-                TotalPrice = TotalPrice            // Maps to TOTAL_AMOUNT
+                FileName = fileName,
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                ColorStatus = colorStatus,
+                CopyCount = copyCount,
+                TotalAmount = totalAmount,
+                Action = action,
+                TotalPrice = totalPrice           
             };
 
             // Serialize the object to JSON format
