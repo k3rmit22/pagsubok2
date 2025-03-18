@@ -251,29 +251,30 @@ namespace kiosk_snapprint
         {
             try
             {
-                // Calculate the total price without converting color mode
-                double totalPrice = CalculateTotalPrice(FileBytes,ColorMode, SelectedPages, CopyCount); // Pass ColorMode directly
+                // Calculate the total price
+                double totalPrice = CalculateTotalPrice(FileBytes, ColorMode, SelectedPages, CopyCount);
 
-                // Create an instance of the next user control (FinalReview)
-                Uniquecode_insert_payment paymentPage = new Uniquecode_insert_payment(
-                    FileBytes,    // File bytes passed from Pricing_for_Unique
-                    FileName,     // File name passed from Pricing_for_Unique
-                    PageSize,     // Page size passed from Pricing_for_Unique
-                    ColorMode,    // Color mode passed directly (no conversion)
-                    SelectedPages,// Selected pages passed from Pricing_for_Unique
-                    CopyCount,    // Copy count passed from Pricing_for_Unique
-                    totalPrice    // Total price calculated
+                // Create an instance of YesOrNO modal window and pass parameters
+                YesOrNO yesOrNoWindow = new YesOrNO(
+                    FileBytes,    // File bytes
+                    FileName,     // File name
+                    PageSize,     // Page size
+                    ColorMode,    // Color mode
+                    SelectedPages.ToArray(), // Convert List<int> to int[]
+                    CopyCount,    // Copy count
+                    totalPrice    // Total price
                 );
 
-                // Navigate to the next user control (FinalReview)
-                var mainWindow = (MainWindow)Application.Current.MainWindow;
-                mainWindow.MainContent.Content = paymentPage; // Assuming MainContent is the container for the user controls
+                // Open the YesOrNO window as a modal dialog
+                yesOrNoWindow.Owner = Application.Current.MainWindow;
+                yesOrNoWindow.ShowDialog(); // This will pause execution until the modal is closed
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred while navigating to the next page: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"An error occurred while opening the confirmation window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
     }
 }

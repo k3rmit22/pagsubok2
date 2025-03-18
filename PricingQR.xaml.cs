@@ -282,37 +282,38 @@ namespace kiosk_snapprint
             return colorStatus?.Trim().ToLower();
         }
 
-      
+
 
         private void NextButton_Click(object sender, RoutedEventArgs e)
         {
-            // Create an instance of the insert_payment UserControl and pass the data, including the totalPrice
-            insert_payment insertPaymentControl = new insert_payment(
-                filePath: FilePath,
-                fileName: FileName,
-                pageSize: PageSize,
-                pageCount: Pagecount,
-                colorStatus: ColorStatus,
-                numberOfSelectedPages: NumberOfSelectedPages,
-                copyCount: CopyCount,
-                selectedPages: SelectedPages,
-                totalPrice: TotalPrice // Pass the totalPrice to insert_payment
-            );
-
-            // Access the MainWindow instance
-            MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
-
-            if (mainWindow != null)
+            try
             {
-                // Set the content to display the insert_payment page
-                mainWindow.MainContent.Content = insertPaymentControl;
+                // Create an instance of the ProceedToPayment window and pass the necessary parameters
+                ProceedToPayment proceedToPaymentWindow = new ProceedToPayment(
+                    filePath: FilePath,
+                    fileName: FileName,
+                    pageSize: PageSize,
+                    pageCount: Pagecount,
+                    colorStatus: ColorStatus,
+                    numberOfSelectedPages: NumberOfSelectedPages,
+                    copyCount: CopyCount,
+                    selectedPages: SelectedPages,
+                    totalPrice: TotalPrice
+                );
+
+                // Set the owner to the main window
+                proceedToPaymentWindow.Owner = Application.Current.MainWindow;
+
+                // Open the ProceedToPayment window as a modal dialog
+                proceedToPaymentWindow.ShowDialog();
             }
-            else
+            catch (Exception ex)
             {
-                // Handle error if MainWindow is null
-                MessageBox.Show("MainWindow instance is not available.");
+                MessageBox.Show($"An error occurred while opening the confirmation window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {

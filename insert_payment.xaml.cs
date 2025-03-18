@@ -29,6 +29,9 @@ namespace kiosk_snapprint
         public List<int> SelectedPages { get; private set; }
         public double TotalPrice { get; private set; }
 
+        private DispatcherTimer countdownTimer;
+        private int remainingTime = 10; // 5 minutes in seconds
+
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
 
@@ -63,9 +66,43 @@ namespace kiosk_snapprint
             ResetInsertedAmount(); // Initialize the reset logic
             this.Unloaded += UserControl_Unloaded;
 
-            // Start the email checking task
-            StartEmailChecking();
+            StartCountdownTimer(); // Start countdown
+            StartEmailChecking(); // Start checking for payments
         }
+
+        private void StartCountdownTimer()
+        {
+            countdownTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            countdownTimer.Tick += (sender, e) =>
+            {
+                remainingTime--;
+
+                // Update the countdown timer label
+                int minutes = remainingTime / 60;
+                int seconds = remainingTime % 60;
+                timer_label.Text = $"{minutes:D2}:{seconds:D2}";
+
+                if (remainingTime <= 0)
+                {
+                    countdownTimer.Stop();
+                    CancelTransaction(); // Automatically cancel transaction
+                }
+            };
+            countdownTimer.Start();
+        }
+
+        private void CancelTransaction()
+        {
+            MessageBox.Show("Transaction timed out. Returning to home screen.", "Timeout", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+            var mainWindow = (MainWindow)Application.Current.MainWindow;
+            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
+
+            Dispose(); // Clean up resources
+        }   
 
         private void StartEmailChecking()
         {
