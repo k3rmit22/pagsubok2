@@ -30,7 +30,7 @@ namespace kiosk_snapprint
         public double TotalPrice { get; private set; }
 
         private DispatcherTimer countdownTimer;
-        private int remainingTime = 10; // 5 minutes in seconds
+        private int remainingTime = 300; // 5 minutes in seconds
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
