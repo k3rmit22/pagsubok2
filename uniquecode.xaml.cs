@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,14 +32,38 @@ namespace kiosk_snapprint
 
             if (string.IsNullOrEmpty(uniqueCode))
             {
-                MessageBox.Show("Please enter a valid unique code.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please enter the unique code.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             try
             {
-                // Attempt to retrieve the file based on the unique code
-                (byte[] fileBytes, string fileName) = await RetrieveFileAsync(uniqueCode);
+                // ✅ Show the loading circle immediately
+                LoadingPanel.Visibility = Visibility.Visible;
+                await Dispatcher.InvokeAsync(() => { }, System.Windows.Threading.DispatcherPriority.Render);
+
+                // ✅ Set a timeout for 20 seconds
+                var cancellationTokenSource = new CancellationTokenSource();
+                var timeoutTask = Task.Delay(20000, cancellationTokenSource.Token);  // 20 seconds timeout
+
+                // ✅ Start the file retrieval task
+                var retrievalTask = RetrieveFileAsync(uniqueCode);
+
+                // ✅ Wait for either the retrieval or timeout
+                var completedTask = await Task.WhenAny(retrievalTask, timeoutTask);
+
+                // ✅ Hide the loading circle immediately after retrieval or timeout
+                LoadingPanel.Visibility = Visibility.Collapsed;
+
+                if (completedTask == timeoutTask)
+                {
+                    // 🛑 Timeout occurred
+                    MessageBox.Show("An error has occurred. The process took too long.", "Timeout Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // ✅ Retrieve the result
+                (byte[] fileBytes, string fileName) = await retrievalTask;
 
                 if (fileBytes == null || fileBytes.Length == 0)
                 {
@@ -46,13 +71,16 @@ namespace kiosk_snapprint
                     return;
                 }
 
-                // Navigate to the PDF display page with the retrieved file and filename
+                // ✅ Navigate to the PDF display page
                 var mainWindow = (MainWindow)Application.Current.MainWindow;
                 var pdfDisplayPage = new PdfDisplayPage(fileBytes, fileName);
                 mainWindow.MainContent.Content = pdfDisplayPage;
             }
             catch (Exception ex)
             {
+                // ✅ Hide the loading circle in case of an exception
+                LoadingPanel.Visibility = Visibility.Collapsed;
+
                 MessageBox.Show($"An error occurred while retrieving the file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -69,8 +97,7 @@ namespace kiosk_snapprint
                     if (response.IsSuccessStatusCode)
                     {
                         byte[] fileBytes = await response.Content.ReadAsByteArrayAsync();
-                        string fileName = response.Content.Headers.ContentDisposition?.FileName ?? "UnknownFile.pdf"; // Get filename from ContentDisposition header
-
+                        string fileName = response.Content.Headers.ContentDisposition?.FileName ?? "UnknownFile.pdf";
                         return (fileBytes, fileName);
                     }
                     else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
