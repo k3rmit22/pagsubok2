@@ -28,6 +28,7 @@ namespace kiosk_snapprint
             Loaded += MainWindow_Loaded;
             MainContent.Content = new HomeUserControl();
             pdfDisplayInstance = null;
+            TransactionData.Reset();
 
 
 

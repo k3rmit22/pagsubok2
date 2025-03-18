@@ -27,12 +27,16 @@ namespace kiosk_snapprint
 
         public double TotalPrice { get; set; }
 
-      
+       
+
+
 
         public PricingQR(string filePath, string fileName, string pageSize, string colorStatus,
             int numberOfSelectedPages, int copyCount, List<int> selectedPages, int pageCount)
         {
             InitializeComponent();
+
+           
 
             // Store data in properties
             FilePath = filePath;
@@ -43,6 +47,8 @@ namespace kiosk_snapprint
             NumberOfSelectedPages = numberOfSelectedPages;
             CopyCount = copyCount;
             SelectedPages = selectedPages;
+
+           
 
             // Load summary and display data
             LoadSummary(FilePath,FileName, PageSize, ColorStatus, SelectedPages, CopyCount);

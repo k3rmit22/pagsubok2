@@ -27,6 +27,7 @@
     <PackageReference Include="MailKit" Version="4.10.0" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="9.0.0" />
     <PackageReference Include="MySql.Data" Version="9.1.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="PdfiumViewer.Updated" Version="2.14.5" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="Syncfusion.Pdf.Net.Core" Version="27.2.5">

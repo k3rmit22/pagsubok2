@@ -4,8 +4,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using System.Drawing.Printing;
-using Aspose.Pdf;
-using Aspose.Pdf.Devices;
+
+using System.Net.Http;
+using System.Text;
+using PdfiumViewer;
+
+
 
 namespace kiosk_snapprint
 {
@@ -21,6 +25,10 @@ namespace kiosk_snapprint
         public List<int> SelectedPages { get; private set; }
         public double TotalPrice { get; private set; }
 
+        public string Action { get; private set; } // New property
+
+        public decimal TotalAmount { get; private set; } // Include TransactionData.TotalAmount
+
         private DispatcherTimer _timer;
 
         public printing_try(string filePath, string fileName, string pageSize, int pageCount,
@@ -28,6 +36,8 @@ namespace kiosk_snapprint
                             List<int> selectedPages, double totalPrice)
         {
             InitializeComponent();
+
+            TotalAmount = TransactionData.TotalAmount;
 
             // Store passed values
             FilePath = filePath;
@@ -40,6 +50,8 @@ namespace kiosk_snapprint
             SelectedPages = selectedPages;
             TotalPrice = totalPrice;
 
+            Action = "Proceed";
+
             // Start the printing task asynchronously
             Task.Run(() => StartPrintingAsync(FilePath));
         }
@@ -49,103 +61,87 @@ namespace kiosk_snapprint
         {
             try
             {
-                Dispatcher.Invoke(() => ShowLoading(true));
-               
-                await Task.Delay(10000);
+                Dispatcher.Invoke(() => ShowLoading(true)); // Show the loading overlay
 
-                await Task.Run(() => PrintPdfFile(filePath));
+                await Task.Delay(500); // Optional delay for smoother UI update
 
-                Dispatcher.Invoke(() =>
-                {
-                    ShowLoading(false);
-                  
-                    NavigateToHomeUserControl();
-                });
+                await Task.Run(() => PrintPdfFile(filePath)); // Run the printing task
+
+                await SendTransactionDataAsync(); // Send transaction data after printing
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
                 Dispatcher.Invoke(() =>
                 {
-                    ShowLoading(false);
-                   
-                    NavigateToHomeUserControl(); // Navigate to HomeUserControl even if there's an error
+                    ShowLoading(false); // Hide the loading overlay
+                    NavigateToHomeUserControl(); // Navigate to home only after everything is done
                 });
             }
         }
 
         public void PrintPdfFile(string filePath)
         {
-            Dispatcher.Invoke(() => ShowLoading(true));
+            Dispatcher.Invoke(() => ShowLoading(true)); // Show loading overlay before starting
 
             try
             {
-                Document pdfDocument = new Document(filePath);
-                PrinterSettings printerSettings = new PrinterSettings
+                using (var pdfDocument = PdfiumViewer.PdfDocument.Load(filePath)) // Load the PDF
                 {
-                    PrinterName = "EPSON L3110 Series"
-                };
-
-                // Set printer settings based on ColorStatus
-                if (ColorStatus.ToLower() == "greyscale")
-                {
-                    SetPrinterSettingsToGreyscale(printerSettings);
-                }
-                else if (ColorStatus.ToLower() == "colored")
-                {
-                    SetPrinterSettingsToColored(printerSettings);
-                }
-
-                foreach (var pageIndex in SelectedPages)
-                {
-                    if (pageIndex >= 1 && pageIndex <= pdfDocument.Pages.Count)
+                    PrinterSettings printerSettings = new PrinterSettings
                     {
-                        for (int copyIndex = 0; copyIndex < CopyCount; copyIndex++)
+                        PrinterName = "EPSON L3110 Series"
+                    };
+
+                    // Configure printer settings for color/greyscale
+                    if (ColorStatus.ToLower() == "greyscale")
+                    {
+                        SetPrinterSettingsToGreyscale(printerSettings);
+                    }
+                    else if (ColorStatus.ToLower() == "colored")
+                    {
+                        SetPrinterSettingsToColored(printerSettings);
+                    }
+
+                    foreach (var pageIndex in SelectedPages)
+                    {
+                        if (pageIndex >= 1 && pageIndex <= pdfDocument.PageCount)
                         {
-                            using (MemoryStream pageStream = new MemoryStream())
+                            for (int copyIndex = 0; copyIndex < CopyCount; copyIndex++)
                             {
-                                Resolution resolution = new Resolution(300);
+                                using (var printDocument = pdfDocument.CreatePrintDocument())
+                                {
+                                    printDocument.PrinterSettings = printerSettings;
 
-                                if (ColorStatus.ToLower() == "colored")
-                                {
-                                    JpegDevice jpegDevice = new JpegDevice(resolution);
-                                    jpegDevice.Process(pdfDocument.Pages[pageIndex], pageStream);
-                                }
-                                else if (ColorStatus.ToLower() == "greyscale")
-                                {
-                                    PngDevice pngDevice = new PngDevice(resolution);
-                                    pngDevice.Process(pdfDocument.Pages[pageIndex], pageStream);
-                                }
-                                else
-                                {
-                                    JpegDevice jpegDevice = new JpegDevice(resolution);
-                                    jpegDevice.Process(pdfDocument.Pages[pageIndex], pageStream);
-                                }
+                                    // Set specific page range for printing (adjusting for 0-based index)
+                                    printDocument.PrinterSettings.FromPage = pageIndex;
+                                    printDocument.PrinterSettings.ToPage = pageIndex;
 
-                                PrintPage(pageStream, printerSettings);
+                                    printDocument.Print(); // Print the selected page
+                                }
                             }
                         }
-                    }
-                    else
-                    {
-                        Dispatcher.Invoke(() =>
+                        else
                         {
-                            NavigateToHomeUserControl();
-                        });
+                            throw new ArgumentOutOfRangeException($"Page index {pageIndex} is out of range.");
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Dispatcher.Invoke(() =>
-                {
-                    NavigateToHomeUserControl();
-                });
+                Console.WriteLine($"Printing Error: {ex.Message}");
             }
             finally
             {
-                Dispatcher.Invoke(() => ShowLoading(false));
+                Dispatcher.Invoke(() => ShowLoading(false)); // Hide loading overlay after printing
             }
         }
+
+
 
         private void SetPrinterSettingsToGreyscale(PrinterSettings printerSettings)
         {
@@ -159,28 +155,59 @@ namespace kiosk_snapprint
             printerSettings.DefaultPageSettings.Color = true; // Set to colored
         }
 
-        private void PrintPage(Stream pageStream, PrinterSettings printerSettings)
-        {
-            using (var image = System.Drawing.Image.FromStream(pageStream))
-            {
-                PrintDocument printDocument = new PrintDocument
-                {
-                    PrinterSettings = printerSettings
-                };
+       
 
-                printDocument.PrintPage += (sender, e) =>
-                {
-                    e.Graphics.DrawImage(image, e.PageBounds);
-                };
-
-                printDocument.Print();
-            }
-        }
 
         private void ShowLoading(bool isLoading)
         {
             LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private async Task SendTransactionDataAsync()
+        {
+            // Define your PHP API URL
+            string url = "https://snapprintadmin.online/transaction.php"; // Replace with your actual API endpoint
+
+            // Prepare the JSON payload using the class properties
+            var transactionData = new
+            {
+                FileName = FileName,               // Maps to File_Name
+                PageSize = PageSize,               // Maps to Pagesize
+                SelectedPages = SelectedPages,     // Maps to selected_pages
+                ColorStatus = ColorStatus,         // Maps to COLOR_OF_PAPER
+                CopyCount = CopyCount,             // Maps to NUMBER_OF_COPIES
+                TotalAmount = TotalAmount,         // Maps to inserted_amount and total_income
+                Action = Action,                   // Maps to ACTION
+                TotalPrice = TotalPrice            // Maps to TOTAL_AMOUNT
+            };
+
+            // Serialize the object to JSON format
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(transactionData);
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    // Create HTTP content with the serialized JSON payload
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    // Send the POST request to the API endpoint
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // Read the API response
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    // (Optional) Log or display the response for debugging
+                    Console.WriteLine($"API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors during the API call
+                    Console.WriteLine($"Error sending transaction data: {ex.Message}");
+                }
+            }
+        }
+
 
         private void NavigateToHomeUserControl()
         {
