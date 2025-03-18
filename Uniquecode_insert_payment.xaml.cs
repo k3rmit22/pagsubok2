@@ -26,7 +26,10 @@ namespace kiosk_snapprint
         public string ColorMode { get; set; }
         public List<int> SelectedPages { get; set; }
         public int CopyCount { get; set; }
-        public int TotalPrice { get; set; }
+        public double TotalPrice { get; set; }
+
+        private DispatcherTimer countdownTimer;
+        private int remainingTime = 300; // 5 minutes in seconds
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
@@ -41,7 +44,7 @@ namespace kiosk_snapprint
 
         private DispatcherTimer emailCheckTimer;
 
-        public Uniquecode_insert_payment(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, int totalPrice)
+        public Uniquecode_insert_payment(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, double totalPrice)
         {
             InitializeComponent();
             FileBytes = fileBytes;
@@ -58,8 +61,44 @@ namespace kiosk_snapprint
             ResetInsertedAmount(); // Initialize the reset logic
             this.Unloaded += UserControl_Unloaded;
 
-            // Start the email checking task
-            StartEmailChecking();
+            StartCountdownTimer(); // Start countdown
+            StartEmailChecking(); // Start checking for payments
+
+        }
+
+        private void StartCountdownTimer()
+        {
+            countdownTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(1)
+            };
+            countdownTimer.Tick += (sender, e) =>
+            {
+                remainingTime--;
+
+                // Update the countdown timer label
+                int minutes = remainingTime / 60;
+                int seconds = remainingTime % 60;
+                timer_label.Text = $"{minutes:D2}:{seconds:D2}";
+
+                if (remainingTime <= 0)
+                {
+                    countdownTimer.Stop();
+                    CancelTransaction(); // Automatically cancel transaction
+                }
+            };
+            countdownTimer.Start();
+        }
+
+
+        private void CancelTransaction()
+        {
+            MessageBox.Show("Transaction timed out. Returning to home screen.", "Timeout", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+            var mainWindow = (MainWindow)Application.Current.MainWindow;
+            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
+
+            Dispose(); // Clean up resources
         }
 
         private void Loadsummary(string fileName, double totalPrice)
@@ -93,9 +132,15 @@ namespace kiosk_snapprint
                     var inbox = client.Inbox;
                     await inbox.OpenAsync(FolderAccess.ReadWrite); // Open in ReadWrite mode to mark emails as seen
 
-                    // Search for unread emails containing the GCash payment message
-                    var query = SearchQuery.BodyContains("You have received the money in GCash!").And(SearchQuery.NotSeen);
+                    // Search for unread emails containing the GCash payment message from a specific sender
+                    var query = SearchQuery.FromContains("jiyuyuyuji@gmail.com")
+                        .And(SearchQuery.BodyContains("You have received the money in GCash!"))
+                        .And(SearchQuery.NotSeen);
+
                     var results = await inbox.SearchAsync(query);
+
+
+
 
                     if (results.Count > 0)
                     {
