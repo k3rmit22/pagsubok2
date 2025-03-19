@@ -298,17 +298,22 @@ namespace kiosk_snapprint
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            // Create and display the cancel transaction modal
-            cancel_transaction_modal cancelModal = new cancel_transaction_modal
-            {
-                Owner = Application.Current.MainWindow // Set the main window as the owner
-            };
+                // Create and display the cancel transaction modal, passing the required properties to the constructor
+                cancel_transaction_modal cancelModal = new cancel_transaction_modal(
+                    FileName,
+                    PageSize,
+                    ColorStatus,
+                    CopyCount,
+                    SelectedPages,
+                    TotalPrice
+                )
+                {
+                    Owner = Application.Current.MainWindow, // Set the main window as the owner
+                    SecondSerialPort = _secondSerialPort // Pass the second serial port
+                };
 
-            // Pass the second serial port (COM9) to the modal so it can send a command if necessary
-            cancelModal.SecondSerialPort = _secondSerialPort;
-
-            // Show the modal dialog (blocks further interaction until closed)
-            cancelModal.ShowDialog();
+                // Show the modal dialog (blocks further interaction until closed)
+                cancelModal.ShowDialog();   
         }
 
         private void SendServoCommand(string command)

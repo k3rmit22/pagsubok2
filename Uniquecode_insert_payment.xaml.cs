@@ -28,13 +28,15 @@ namespace kiosk_snapprint
         public int CopyCount { get; set; }
         public double TotalPrice { get; set; }
 
+
+
         private DispatcherTimer countdownTimer;
         private int remainingTime = 300; // 5 minutes in seconds
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
 
-        private int _insertedAmount;
+        private int _insertedAmount; // Tracks the inserted amount
 
 
         private const string gmailHost = "imap.gmail.com";
@@ -427,17 +429,25 @@ namespace kiosk_snapprint
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            // Create and display the cancel transaction modal
-            cancel_transaction_modal cancelModal = new cancel_transaction_modal
+            string ColorStatus = ColorMode;
+            // Create and display the cancel transaction modal, passing the required properties to the constructor
+            cancel_transaction_modal cancelModal = new cancel_transaction_modal(
+                FileName,
+                PageSize,
+                ColorStatus,
+                CopyCount,
+                SelectedPages,
+                TotalPrice
+            )
             {
-                Owner = Application.Current.MainWindow // Set the main window as the owner
+                Owner = Application.Current.MainWindow, // Set the main window as the owner
+                SecondSerialPort = _secondSerialPort // Pass the second serial port
             };
-
-            // Pass the second serial port (COM9) to the modal so it can send a command if necessary
-            cancelModal.SecondSerialPort = _secondSerialPort;
 
             // Show the modal dialog (blocks further interaction until closed)
             cancelModal.ShowDialog();
         }
     }
+
+                  
 }

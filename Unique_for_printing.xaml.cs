@@ -1,14 +1,13 @@
 ﻿using System;
 using System.IO;
-using System.Drawing;
-using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.Windows;
-using Aspose.Pdf;
-using Aspose.Pdf.Devices;
+using PdfiumViewer;
+using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using System.Net.Http;
 
 namespace kiosk_snapprint
 {
@@ -22,7 +21,9 @@ namespace kiosk_snapprint
         public int CopyCount { get; }
         public double TotalPrice { get; }
 
-        // Add properties for overlay visibility
+        public string Action { get; private set; } // New property
+        public decimal TotalAmount { get; private set; } // Include TransactionData.TotalAmount
+
         public Visibility OverlayVisibility
         {
             get { return LoadingOverlay.Visibility; }
@@ -32,6 +33,7 @@ namespace kiosk_snapprint
         public Unique_for_printing(byte[] fileBytes, string fileName, string pageSize, string colorMode, List<int> selectedPages, int copyCount, double totalPrice)
         {
             InitializeComponent();
+
             // Set the values to class properties
             FileBytes = fileBytes;
             FileName = fileName;
@@ -40,144 +42,144 @@ namespace kiosk_snapprint
             SelectedPages = selectedPages;
             CopyCount = copyCount;
             TotalPrice = totalPrice;
+
+            Action = "Proceed";
+            TotalAmount = TransactionData.TotalAmount;
+
             Debug.WriteLine($"Printing - FileByte: {FileBytes}");
             Debug.WriteLine($"Printing - FileName: {FileName}");
-            Debug.WriteLine($"Printing - Pagesize: {PageSize}");
-            Debug.WriteLine($"Printing - colormode: {ColorMode}");
-            Debug.WriteLine($"Printing - selectedPages: {SelectedPages}");
+            Debug.WriteLine($"Printing - PageSize: {PageSize}");
+            Debug.WriteLine($"Printing - ColorMode: {ColorMode}");
+            Debug.WriteLine($"Printing - SelectedPages: {SelectedPages}");
             Debug.WriteLine($"Printing - CopyCount: {CopyCount}");
-
-
 
             // Attach Loaded event handler
             this.Loaded += Unique_for_printing_Loaded;
         }
 
-        // When the window is loaded, call the PrintDocument method
+        // When the window is loaded, display the GIF and start the operations
         private async void Unique_for_printing_Loaded(object sender, RoutedEventArgs e)
         {
-            OverlayVisibility = Visibility.Visible; // Show overlay
-            await PrintDocumentAsync(); // Call the asynchronous print method
+            try
+            {
+                OverlayVisibility = Visibility.Visible; // Show loading overlay
+
+                // Perform printing and send transaction data
+                await PrintDocumentAsync();
+                await SendTransactionDataAsync(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action, TotalAmount);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error: {ex.Message}");
+            }
+            finally
+            {
+                OverlayVisibility = Visibility.Collapsed; // Hide loading overlay
+                this.Close(); // Close the window after all operations
+            }
         }
 
         // Asynchronous method to print the document
-        // Assuming MainWindow has a method to navigate to different UserControls
         private async Task PrintDocumentAsync()
         {
             try
             {
                 using (MemoryStream stream = new MemoryStream(FileBytes))
+                using (var pdfDocument = PdfiumViewer.PdfDocument.Load(stream))
                 {
-                    Document pdfDocument = new Document(stream); // Load the PDF from byte array
-
-                    // Set up the printer settings
                     PrinterSettings printerSettings = new PrinterSettings
                     {
                         PrinterName = "EPSON L3110 Series" // Set your printer's name here
                     };
 
-                    // Set printer settings based on the color mode
+                    PrintDocument printDoc = pdfDocument.CreatePrintDocument();
+
+                    // Configure printer settings for color mode
                     if (ColorMode.Equals("greyscale", StringComparison.OrdinalIgnoreCase))
                     {
-                        SetPrinterSettingsToGreyscale(printerSettings); // Set the printer to greyscale
+                        SetPrinterSettingsToGreyscale(printerSettings);
                     }
                     else if (ColorMode.Equals("colored", StringComparison.OrdinalIgnoreCase))
                     {
-                        SetPrinterSettingsToColored(printerSettings); // Set the printer to colored
+                        SetPrinterSettingsToColored(printerSettings);
                     }
 
-                    // Loop through each selected page and handle the copy count manually
+                    printDoc.PrinterSettings = printerSettings;
+
+                    // Loop through selected pages and handle copy count
                     foreach (var pageNum in SelectedPages)
                     {
-                        if (pageNum < 1 || pageNum > pdfDocument.Pages.Count)
+                        if (pageNum < 1 || pageNum > pdfDocument.PageCount)
                             continue; // Skip invalid page numbers
 
-                        // Render the page as an image asynchronously
-                        await Task.Run(() =>
+                        for (int i = 0; i < CopyCount; i++)
                         {
-                            using (MemoryStream imageStream = new MemoryStream())
-                            {
-                                Resolution resolution = new Resolution(300); // Set the DPI
-                                JpegDevice jpegDevice = new JpegDevice(resolution, 100); // Render as JPEG
-                                jpegDevice.Process(pdfDocument.Pages[pageNum], imageStream);
-                                imageStream.Position = 0;
+                            printDoc.PrintController = new StandardPrintController(); // Suppress print dialogs
+                            printDoc.DefaultPageSettings.PrinterSettings = printerSettings;
 
-                                using (System.Drawing.Image pageImage = System.Drawing.Image.FromStream(imageStream))
-                                {
-                                    // Print the page based on the copy count
-                                    for (int i = 0; i < CopyCount; i++)
-                                    {
-                                        PrintPage(printerSettings, pageImage); // Print one copy
-                                    }
-                                }
-                            }
-                        });
+                            // Set current page to print
+                            printDoc.PrinterSettings.FromPage = pageNum;
+                            printDoc.PrinterSettings.ToPage = pageNum;
+
+                            printDoc.Print();
+                        }
                     }
-
-                    // Print completed message
-                    NavigateToHome();
                 }
             }
             catch (Exception ex)
             {
-                NavigateToHome();
-            }
-            finally
-            {
-                // Hide the overlay after printing is done
-                OverlayVisibility = Visibility.Collapsed;
-
-                // Navigate back to the home UserControl
-                NavigateToHome();
-
-                // Close the current window
-                this.Close();
+                Debug.WriteLine($"Error during printing: {ex.Message}");
             }
         }
 
-        // Method to navigate back to Home UserControl
-        private void NavigateToHome()
+        // Method to send transaction data to the database
+        private async Task SendTransactionDataAsync(string fileName, string pageSize, List<int> selectedPages,
+                                                    string colorMode, int copyCount, double totalPrice,
+                                                    string action, decimal totalAmount)
         {
-            // Assuming MainWindow contains a method called NavigateToUserControl
-            if (Application.Current.MainWindow is MainWindow mainWindow)
+            string url = "https://snapprintadmin.online/transaction.php"; // Your API endpoint
+
+            var transactionData = new
             {
-                mainWindow.NavigateToUserControl(new HomeUserControl());
-            }
-        }
-
-
-
-        // Method to print a single page image
-        private void PrintPage(PrinterSettings printerSettings, System.Drawing.Image pageImage)
-        {
-            PrintDocument printDoc = new PrintDocument
-            {
-                PrinterSettings = printerSettings
+                FileName = fileName,
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                ColorStatus = colorMode,
+                CopyCount = copyCount,
+                Action = action,
+                TotalPrice = totalPrice,
+                TotalAmount = totalAmount // Inserted amount
             };
 
-            printDoc.PrintPage += (sender, e) =>
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(transactionData);
+
+            using (HttpClient client = new HttpClient())
             {
-                e.Graphics.DrawImage(pageImage, e.PageBounds);
-            };
+                try
+                {
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(url, content);
 
-            printDoc.Print();
+                    string responseString = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error sending transaction data: {ex.Message}");
+                }
+            }
         }
-
 
         // Method to set the printer to grayscale
         private void SetPrinterSettingsToGreyscale(PrinterSettings printerSettings)
         {
-            // Modify the printer settings to greyscale
-            printerSettings.DefaultPageSettings.Color = false; // Set to greyscale
+            printerSettings.DefaultPageSettings.Color = false;
         }
 
         // Method to set the printer to color
         private void SetPrinterSettingsToColored(PrinterSettings printerSettings)
         {
-            // Modify the printer settings to color
-            printerSettings.DefaultPageSettings.Color = true; // Set to colored
+            printerSettings.DefaultPageSettings.Color = true;
         }
-
-
     }
 }
