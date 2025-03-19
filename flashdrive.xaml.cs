@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -56,6 +57,79 @@ namespace kiosk_snapprint
                 MessageBox.Show($"Error detecting flash drive: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
+        private bool IsValidPdf(string filePath)
+        {
+            try
+            {
+                // Read the first few bytes of the file to verify it's a PDF
+                byte[] buffer = new byte[5];
+                using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+                {
+                    fs.Read(buffer, 0, buffer.Length);
+                }
+
+                string header = BitConverter.ToString(buffer);
+                return header == "25-50-44-46-2D"; // PDF signature: %PDF-
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private bool IsValidFileName(string fileName)
+        {
+            return fileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) &&
+                   fileName.Count(c => c == '.') == 1; // Ensures no hidden double extensions
+        }
+
+        private bool IsSafeFile(string filePath)
+        {
+            FileInfo fileInfo = new FileInfo(filePath);
+            return !fileInfo.Attributes.HasFlag(FileAttributes.Hidden) &&
+                   !fileInfo.Attributes.HasFlag(FileAttributes.System);
+        }
+
+
+
+        private bool ScanWithDefender(string filePath)
+        {
+            string defenderPath = @"C:\Program Files\Windows Defender\MpCmdRun.exe";
+            if (!File.Exists(defenderPath)) return false; // Defender not found
+
+            Process process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = defenderPath,
+                    Arguments = $"-Scan -ScanType 3 -File \"{filePath}\"",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            process.Start();
+            process.WaitForExit();
+            return process.ExitCode == 0; // 0 = No threats found
+        }
+
+        private bool ContainsMaliciousFiles(string drivePath)
+        {
+            var maliciousExtensions = new[] { ".exe", ".bat", ".cmd", ".vbs", ".js", ".inf" };
+
+            foreach (var file in Directory.GetFiles(drivePath, "*.*", SearchOption.AllDirectories))
+            {
+                if (maliciousExtensions.Contains(Path.GetExtension(file).ToLower()))
+                {
+                    return true; // Found a dangerous file
+                }
+            }
+            return false;
+        }
+
+
 
         private void NavigateToBrowseFlashdrive()
         {
