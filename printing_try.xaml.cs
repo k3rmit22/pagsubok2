@@ -66,9 +66,10 @@ namespace kiosk_snapprint
 
                 await Task.Delay(500); // Optional delay for smoother UI update
 
-                await Task.Run(() => PrintPdfFile(filePath)); // Run the printing task
+                // Wait for the printing task to complete
+                await Task.Run(() => PrintPdfFile(filePath));
 
-                // Pass all required parameters to SendTransactionDataAsync
+                // Wait for the transaction data to be sent after printing
                 await SendTransactionDataAsync(
                     FileName,
                     PageSize,
@@ -78,7 +79,7 @@ namespace kiosk_snapprint
                     TotalPrice,
                     Action,
                     TotalAmount
-                ); // Send transaction data after printing
+                );
             }
             catch (Exception ex)
             {
@@ -86,18 +87,18 @@ namespace kiosk_snapprint
             }
             finally
             {
+                // Ensure the loading overlay is hidden only after all processes complete
                 Dispatcher.Invoke(() =>
                 {
                     ShowLoading(false); // Hide the loading overlay
-                    NavigateToHomeUserControl(); // Navigate to home only after everything is done
+                    NavigateToHomeUserControl(); // Navigate to home
                 });
             }
         }
 
+
         public void PrintPdfFile(string filePath)
         {
-            Dispatcher.Invoke(() => ShowLoading(true)); // Show loading overlay before starting
-
             try
             {
                 using (var pdfDocument = PdfiumViewer.PdfDocument.Load(filePath)) // Load the PDF
@@ -127,7 +128,7 @@ namespace kiosk_snapprint
                                 {
                                     printDocument.PrinterSettings = printerSettings;
 
-                                    // Set specific page range for printing (adjusting for 0-based index)
+                                    // Set specific page range for printing
                                     printDocument.PrinterSettings.FromPage = pageIndex;
                                     printDocument.PrinterSettings.ToPage = pageIndex;
 
@@ -146,11 +147,8 @@ namespace kiosk_snapprint
             {
                 Console.WriteLine($"Printing Error: {ex.Message}");
             }
-            finally
-            {
-                Dispatcher.Invoke(() => ShowLoading(false)); // Hide loading overlay after printing
-            }
         }
+
 
 
 
@@ -189,9 +187,9 @@ namespace kiosk_snapprint
                 SelectedPages = selectedPages,
                 ColorStatus = colorStatus,
                 CopyCount = copyCount,
-                TotalAmount = totalAmount,
                 Action = action,
-                TotalPrice = totalPrice           
+                TotalPrice = totalPrice,
+                TotalAmount = totalAmount  //inserted amount  
             };
 
             // Serialize the object to JSON format
