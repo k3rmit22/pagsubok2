@@ -30,11 +30,11 @@ namespace kiosk_snapprint
         public double TotalPrice { get; private set; }
 
         private DispatcherTimer countdownTimer;
-        private int remainingTime = 10; // 5 minutes in seconds
+        private int remainingTime = 300; // 5 minutes in seconds
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
-        public SerialPort SecondSerialPort { get; set; }
+        
 
         private int _insertedAmount; // Tracks the inserted amount
 
@@ -95,34 +95,14 @@ namespace kiosk_snapprint
             countdownTimer.Start();
         }
 
-        private async void CancelTransaction()
+        private void CancelTransaction()
         {
-           
 
-            if (SecondSerialPort != null && SecondSerialPort.IsOpen)
-            {
-                try
-                {
-                    string cancelCommand = "servo180";
-                    await Task.Run(() => SecondSerialPort.WriteLine(cancelCommand));
-                    Debug.WriteLine($"Sent command to hardware via COM9: {cancelCommand}");
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error sending command: {ex.StackTrace}");
-                }
-            }
-            else
-            {
-                Debug.WriteLine("The second serial port is not open or available.");
-            }
 
-            // Navigate to home screen
             var mainWindow = (MainWindow)Application.Current.MainWindow;
-            mainWindow.MainContent.Content = new HomeUserControl();
+            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
 
-            // Clean up resources
-            Dispose();
+            Dispose(); // Clean up resources
         }
 
         private void StartEmailChecking()
