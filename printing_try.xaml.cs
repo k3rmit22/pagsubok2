@@ -66,10 +66,9 @@ namespace kiosk_snapprint
 
                 await Task.Delay(500); // Optional delay for smoother UI update
 
-                // Wait for the printing task to complete
-                await Task.Run(() => PrintPdfFile(filePath));
+                await Task.Run(() => PrintPdfFile(filePath)); // Run the printing task
 
-                // Wait for the transaction data to be sent after printing
+                // Pass all required parameters to SendTransactionDataAsync
                 await SendTransactionDataAsync(
                     FileName,
                     PageSize,
@@ -79,7 +78,9 @@ namespace kiosk_snapprint
                     TotalPrice,
                     Action,
                     TotalAmount
-                );
+                ); // Send transaction data after printing
+
+                await Task.Delay(500); // Allow UI to process before resetting
             }
             catch (Exception ex)
             {
@@ -87,14 +88,42 @@ namespace kiosk_snapprint
             }
             finally
             {
-                // Ensure the loading overlay is hidden only after all processes complete
+                ResetSystem(); // Reset system in finally block
+
                 Dispatcher.Invoke(() =>
                 {
                     ShowLoading(false); // Hide the loading overlay
-                    NavigateToHomeUserControl(); // Navigate to home
+                    NavigateToHomeUserControl(); // Navigate to home after reset
                 });
             }
         }
+        private void ResetSystem()
+        {
+            // Clear transaction data
+            TransactionData.Reset();
+
+            // Reset any UI elements or variables if needed
+            FileName = string.Empty;
+            PageSize = string.Empty;
+            SelectedPages = new List<int>(); // Corrected
+            ColorStatus = string.Empty;
+            CopyCount = 0;
+            TotalPrice = 0;
+            Action = string.Empty;
+            TotalAmount = 0;
+
+            // Refresh UI by forcing layout updates if necessary
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Force UI update
+                Window mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.Content = new HomeUserControl(); // Reload HomeUserControl
+                }
+            });
+        }
+
 
 
         public void PrintPdfFile(string filePath)
