@@ -34,6 +34,7 @@ namespace kiosk_snapprint
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
+        public SerialPort SecondSerialPort { get; set; }
 
         private int _insertedAmount; // Tracks the inserted amount
 
@@ -94,15 +95,35 @@ namespace kiosk_snapprint
             countdownTimer.Start();
         }
 
-        private void CancelTransaction()
+        private async void CancelTransaction()
         {
-            MessageBox.Show("Transaction timed out. Returning to home screen.", "Timeout", MessageBoxButton.OK, MessageBoxImage.Warning);
+           
 
+            if (SecondSerialPort != null && SecondSerialPort.IsOpen)
+            {
+                try
+                {
+                    string cancelCommand = "servo180";
+                    await Task.Run(() => SecondSerialPort.WriteLine(cancelCommand));
+                    Debug.WriteLine($"Sent command to hardware via COM9: {cancelCommand}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error sending command: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                Debug.WriteLine("The second serial port is not open or available.");
+            }
+
+            // Navigate to home screen
             var mainWindow = (MainWindow)Application.Current.MainWindow;
-            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
+            mainWindow.MainContent.Content = new HomeUserControl();
 
-            Dispose(); // Clean up resources
-        }   
+            // Clean up resources
+            Dispose();
+        }
 
         private void StartEmailChecking()
         {
