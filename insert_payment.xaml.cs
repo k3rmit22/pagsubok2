@@ -34,7 +34,7 @@ namespace kiosk_snapprint
 
         private SerialPort _serialPort; // For communication with payment hardware
         private SerialPort _secondSerialPort; // For communication with second hardware (e.g., servo)
-        
+
 
         private int _insertedAmount; // Tracks the inserted amount
 
@@ -95,14 +95,34 @@ namespace kiosk_snapprint
             countdownTimer.Start();
         }
 
-        private void CancelTransaction()
+        private async void CancelTransaction()
         {
 
 
-            var mainWindow = (MainWindow)Application.Current.MainWindow;
-            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
+            if (_secondSerialPort != null && _secondSerialPort.IsOpen)
+            {
+                try
+                {
+                    string cancelCommand = "servo180";
+                    await Task.Run(() => _secondSerialPort.WriteLine(cancelCommand));
+                    Debug.WriteLine($"Sent command to hardware via COM9: {cancelCommand}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error sending command: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                Debug.WriteLine("The second serial port is not open or available.");
+            }
 
-            Dispose(); // Clean up resources
+            // Navigate to home screen
+            var mainWindow = (MainWindow)Application.Current.MainWindow;
+            mainWindow.MainContent.Content = new HomeUserControl();
+
+            // Clean up resources
+            Dispose();
         }
 
         private void StartEmailChecking()
@@ -119,59 +139,59 @@ namespace kiosk_snapprint
         }
 
         private async Task CheckForPaymentEmail()
-{
-    try
-    {
-        using (var client = new ImapClient())
         {
-            await client.ConnectAsync(gmailHost, gmailPort, true);
-            await client.AuthenticateAsync(username, password);
-
-            var inbox = client.Inbox;
-            await inbox.OpenAsync(FolderAccess.ReadWrite); // Open in ReadWrite mode to mark emails as seen
-
-            // Search for unread emails containing the GCash payment message from a specific sender
-            var query = SearchQuery.FromContains("jiyuyuyuji@gmail.com")
-                .And(SearchQuery.BodyContains("You have received the money in GCash!"))
-                .And(SearchQuery.NotSeen);
-
-            var results = await inbox.SearchAsync(query);
-
-            if (results.Count > 0)
+            try
             {
-                var message = await inbox.GetMessageAsync(results[results.Count - 1]); // Get the latest message
-                string body = message.TextBody;
-
-                // Parse the email body to find the inserted amount
-                double amount = ParseAmountFromEmailBody(body);
-                if (amount > 0)
+                using (var client = new ImapClient())
                 {
-                    Dispatcher.Invoke(() =>
+                    await client.ConnectAsync(gmailHost, gmailPort, true);
+                    await client.AuthenticateAsync(username, password);
+
+                    var inbox = client.Inbox;
+                    await inbox.OpenAsync(FolderAccess.ReadWrite); // Open in ReadWrite mode to mark emails as seen
+
+                    // Search for unread emails containing the GCash payment message from a specific sender
+                    var query = SearchQuery.FromContains("jiyuyuyuji@gmail.com")
+                        .And(SearchQuery.BodyContains("You have received the money in GCash!"))
+                        .And(SearchQuery.NotSeen);
+
+                    var results = await inbox.SearchAsync(query);
+
+                    if (results.Count > 0)
                     {
-                        TransactionData.AddEmailPayment((decimal)amount);
+                        var message = await inbox.GetMessageAsync(results[results.Count - 1]); // Get the latest message
+                        string body = message.TextBody;
 
-                        // Update the UI with the new total amount
-                        inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
-                        Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
-                        Debug.WriteLine($"[Email Payment] Added: {amount:F2}, Total Now: {TransactionData.TotalAmount:F2}");
+                        // Parse the email body to find the inserted amount
+                        double amount = ParseAmountFromEmailBody(body);
+                        if (amount > 0)
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                TransactionData.AddEmailPayment((decimal)amount);
 
-                        CheckForPaymentCompletion();
-                    });
+                                // Update the UI with the new total amount
+                                inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
+                                Debug.WriteLine($"Inserted amount updated: {_insertedAmount:F2}");
+                                Debug.WriteLine($"[Email Payment] Added: {amount:F2}, Total Now: {TransactionData.TotalAmount:F2}");
 
-                    // Mark the email as read (Seen) so it is not retrieved again
-                    await inbox.AddFlagsAsync(results[results.Count - 1], MessageFlags.Seen, true);
-                    Debug.WriteLine("Marked email as read (Seen).");
+                                CheckForPaymentCompletion();
+                            });
+
+                            // Mark the email as read (Seen) so it is not retrieved again
+                            await inbox.AddFlagsAsync(results[results.Count - 1], MessageFlags.Seen, true);
+                            Debug.WriteLine("Marked email as read (Seen).");
+                        }
+                    }
+
+                    await client.DisconnectAsync(true);
                 }
             }
-
-            await client.DisconnectAsync(true);
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error checking email: {ex.Message}");
+            }
         }
-    }
-    catch (Exception ex)
-    {
-        Debug.WriteLine($"Error checking email: {ex.Message}");
-    }
-}
 
 
 
@@ -241,14 +261,14 @@ namespace kiosk_snapprint
                             // Store inserted amount in TransactionData
                             TransactionData.InsertAmount(_insertedAmount);
 
-                           
+
                             Debug.WriteLine($"[SerialPort] Received Amount: {_insertedAmount}");
                             Debug.WriteLine($"[TransactionData] Total Amount: {TransactionData.TotalAmount}");
 
                             inserted_amount_label.Text = $"{TransactionData.TotalAmount:F2}";
-                           
 
-                            
+
+
 
 
                             CheckForPaymentCompletion();
@@ -299,22 +319,22 @@ namespace kiosk_snapprint
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-                // Create and display the cancel transaction modal, passing the required properties to the constructor
-                cancel_transaction_modal cancelModal = new cancel_transaction_modal(
-                    FileName,
-                    PageSize,
-                    ColorStatus,
-                    CopyCount,
-                    SelectedPages,
-                    TotalPrice
-                )
-                {
-                    Owner = Application.Current.MainWindow, // Set the main window as the owner
-                    SecondSerialPort = _secondSerialPort // Pass the second serial port
-                };
+            // Create and display the cancel transaction modal, passing the required properties to the constructor
+            cancel_transaction_modal cancelModal = new cancel_transaction_modal(
+                FileName,
+                PageSize,
+                ColorStatus,
+                CopyCount,
+                SelectedPages,
+                TotalPrice
+            )
+            {
+                Owner = Application.Current.MainWindow, // Set the main window as the owner
+                SecondSerialPort = _secondSerialPort // Pass the second serial port
+            };
 
-                // Show the modal dialog (blocks further interaction until closed)
-                cancelModal.ShowDialog();   
+            // Show the modal dialog (blocks further interaction until closed)
+            cancelModal.ShowDialog();
         }
 
         private void SendServoCommand(string command)
