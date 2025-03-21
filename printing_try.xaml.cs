@@ -251,12 +251,17 @@ namespace kiosk_snapprint
 
         private void NavigateToHomeUserControl()
         {
-            // Logic to navigate to HomeUserControl
-            // This could involve changing the content of a parent container, opening a new window, etc.
-            // Example:
-            var homeUserControl = new HomeUserControl();
-            Application.Current.MainWindow.Content = homeUserControl;
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                Window mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.Content = new HomeUserControl();
+                }
+            });
+
             this.Close();
         }
+
     }
 }
