@@ -55,5 +55,10 @@ namespace kiosk_snapprint
             MainContent.Content = ReportPage;
 
         }
+
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

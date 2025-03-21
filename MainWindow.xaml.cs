@@ -159,8 +159,10 @@ namespace kiosk_snapprint
             MainContent.Content = userControl; // Assuming MainContent is the ContentControl in your MainWindow
         }
 
-
-
-
+        private void ShowGifPage()
+        {
+            // Load GifUserControl into the ContentControl
+            MainContent.Content = new paper_refill();
+        }
     }
 }

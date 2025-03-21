@@ -8,6 +8,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Net.Http;
+using iText.Commons.Utils;
+using System.Drawing.Imaging;
 
 namespace kiosk_snapprint
 {
@@ -74,7 +76,10 @@ namespace kiosk_snapprint
             }
             finally
             {
+                ResetSystem(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action);
+              
                 OverlayVisibility = Visibility.Collapsed; // Hide loading overlay
+                NavigateToHome();
                 this.Close(); // Close the window after all operations
             }
         }
@@ -181,5 +186,45 @@ namespace kiosk_snapprint
         {
             printerSettings.DefaultPageSettings.Color = true;
         }
+
+        // Method to navigate back to Home UserControl
+        private void NavigateToHome()
+        {
+            // Assuming MainWindow contains a method called NavigateToUserControl
+            if (Application.Current.MainWindow is MainWindow mainWindow)
+            {
+                mainWindow.NavigateToUserControl(new HomeUserControl());
+            }
+        }
+
+        private void ResetSystem(string FileName, string PageSize, List<int> SelectedPages,
+                                                    string ColorMode, int CopyCount, double TotalPrice,
+                                                    string Action)
+        {
+            // Clear transaction data
+            TransactionData.Reset();
+
+            // Reset any UI elements or variables if needed
+            FileName = string.Empty;
+            PageSize = string.Empty;
+            SelectedPages.Clear();
+            ColorMode = string.Empty;
+            CopyCount = 0;
+            TotalPrice = 0;
+            Action = string.Empty;
+
+
+            // Refresh UI by forcing layout updates if necessary
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Force UI update
+                Window mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.Content = new HomeUserControl(); // Reload HomeUserControl
+                }
+            });
+        }
+
     }
 }

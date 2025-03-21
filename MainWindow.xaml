@@ -87,8 +87,12 @@
                     </StackPanel>
                 </Button>
 
+
             </Grid>
+
+
         </ContentControl>
+      
     </Grid>
 
 </Window>

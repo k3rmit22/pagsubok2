@@ -9,6 +9,8 @@
 
     <Viewbox Margin="0,20,50,0">
         <Grid>
+            <!-- Settings Button on the left -->
+
 
             <!-- ContentControl that will hold dynamic content -->
             <ContentControl x:Name="MainContent" Margin="-36,0,-36,0">
@@ -84,7 +86,7 @@
 
                     <!-- Report Button at Top Right -->
                     <Button HorizontalAlignment="Right" VerticalAlignment="Top"
-                            Width="164" Height="160" Margin="0,-79,-216,0"
+                            Width="164" Height="160" Margin="0,-27,-166,0"
                             Background="White" BorderBrush="Black" BorderThickness="0,0,0,0"
                             Click="ReportButton_Click" Grid.Column="2">
 
@@ -93,6 +95,14 @@
                             <TextBlock Text="Report" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center" />
                         </StackPanel>
                     </Button>
+
+                    <!--<Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                      Width="164" Height="160" Margin="0,-60,4,0"
+                        Background="White" BorderBrush="Black" BorderThickness="0,0,0,0">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Image Source="C:\Users\henry\Source\Repos\pagsubok2\settings-icon.png" Width="100" Height="100" Stretch="UniformToFill" />
+                        </StackPanel>
+                    </Button>-->
 
                 </Grid>
             </ContentControl>
