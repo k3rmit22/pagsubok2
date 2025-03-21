@@ -12,6 +12,8 @@ using MailKit;
 using MimeKit;
 using System.Text.RegularExpressions;
 using MailKit.Search;
+using System.Net.Http;
+using System.Text;
 
 
 
@@ -29,6 +31,8 @@ namespace kiosk_snapprint
         public List<int> SelectedPages { get; private set; }
         public double TotalPrice { get; private set; }
 
+        public string Action { get; private set; } // New property
+
         private DispatcherTimer countdownTimer;
         private int remainingTime = 300; // 5 minutes in seconds
 
@@ -37,6 +41,8 @@ namespace kiosk_snapprint
 
 
         private int _insertedAmount; // Tracks the inserted amount
+
+        public decimal TotalAmount { get; private set; } // Include TransactionData.TotalAmount
 
         private const string gmailHost = "imap.gmail.com";
         private const int gmailPort = 993;
@@ -51,6 +57,7 @@ namespace kiosk_snapprint
         {
             InitializeComponent();
 
+            TotalAmount = TransactionData.TotalAmount;
             // Store passed values...
             FilePath = filePath;
             FileName = fileName;
@@ -61,6 +68,8 @@ namespace kiosk_snapprint
             CopyCount = copyCount;
             SelectedPages = selectedPages;
             TotalPrice = totalPrice;
+            Action = "Cancelled";
+            
 
             Loadsummary(FileName, TotalPrice);
             InitializeSerialPorts(); // Initialize serial ports
@@ -71,8 +80,8 @@ namespace kiosk_snapprint
             StartEmailChecking(); // Start checking for payments
         }
 
-        private void StartCountdownTimer()
-        {
+        private async void StartCountdownTimer()
+        { 
             countdownTimer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(1)
@@ -89,6 +98,16 @@ namespace kiosk_snapprint
                 if (remainingTime <= 0)
                 {
                     countdownTimer.Stop();
+                    SendTransactionAsync(
+                    FileName,
+                    PageSize,
+                    SelectedPages,
+                    ColorStatus, // Assuming ColorMode corresponds to ColorStatus
+                    CopyCount,
+                    TotalPrice,
+                    Action,
+                    TotalAmount);
+
                     CancelTransaction(); // Automatically cancel transaction
                 }
             };
@@ -476,5 +495,54 @@ namespace kiosk_snapprint
             Debug.WriteLine("UserControl_Unloaded triggered.");
             Dispose();
         }
+
+
+        private async Task SendTransactionAsync(string fileName, string pageSize, List<int> selectedPages,
+                                             string colorStatus, int copyCount, double totalPrice,
+                                             string action, decimal totalAmount)
+        {
+            // Define your PHP API URL
+            string url = "https://snapprintadmin.online/cancel_transaction.php"; // Replace with your actual API endpoint
+
+            // Prepare the JSON payload using the class properties
+            var transactionData = new
+            {
+                FileName = fileName,
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                ColorStatus = colorStatus,
+                CopyCount = copyCount,
+                Action = action,
+                TotalPrice = totalPrice,
+                TotalAmount = totalAmount
+            };
+
+            // Serialize the object to JSON format
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(transactionData);
+
+            using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) })
+            {
+                try
+                {
+                    // Create HTTP content with the serialized JSON payload
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    // Send the POST request to the API endpoint
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // Read the API response
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    // (Optional) Log or display the response for debugging
+                    Console.WriteLine($"API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors during the API call
+                    Console.WriteLine($"Error sending transaction data: {ex.Message}");
+                }
+            }
+        }
+
     }
 }

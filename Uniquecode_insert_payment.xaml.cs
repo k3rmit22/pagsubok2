@@ -12,6 +12,8 @@ using MailKit;
 using MimeKit;
 using System.Text.RegularExpressions;
 using MailKit.Search;
+using System.Net.Http;
+using System.Text;
 
 
 
@@ -29,6 +31,9 @@ namespace kiosk_snapprint
         public double TotalPrice { get; set; }
 
 
+        public string Action { get; private set; } // New property
+
+        public decimal TotalAmount { get; private set; } // Include TransactionData.TotalAmount
 
         private DispatcherTimer countdownTimer;
         private int remainingTime = 300; // 5 minutes in seconds
@@ -56,6 +61,8 @@ namespace kiosk_snapprint
             SelectedPages = selectedPages;
             CopyCount = copyCount;
             TotalPrice = totalPrice;
+            Action = "Cancelled"; // FOR TIME OUT CACELL TRANSACTION
+             TotalAmount = TransactionData.TotalAmount;
 
 
             Loadsummary(FileName, TotalPrice);
@@ -86,6 +93,19 @@ namespace kiosk_snapprint
                 if (remainingTime <= 0)
                 {
                     countdownTimer.Stop();
+
+                    string ColorStatus = ColorMode;
+
+                    SendTransactionAsync(
+                    FileName,
+                    PageSize,
+                    SelectedPages,
+                    ColorStatus, // Assuming ColorMode corresponds to ColorStatus
+                    CopyCount,
+                    TotalPrice,
+                    Action,
+                    TotalAmount);
+                    
                     CancelTransaction(); // Automatically cancel transaction
                 }
             };
@@ -93,14 +113,33 @@ namespace kiosk_snapprint
         }
 
 
-        private void CancelTransaction()
+        private async void CancelTransaction()
         {
-            MessageBox.Show("Transaction timed out. Returning to home screen.", "Timeout", MessageBoxButton.OK, MessageBoxImage.Warning);
 
+            if (_secondSerialPort != null && _secondSerialPort.IsOpen)
+            {
+                try
+                {
+                    string cancelCommand = "servo180";
+                    await Task.Run(() => _secondSerialPort.WriteLine(cancelCommand));
+                    Debug.WriteLine($"Sent command to hardware via COM9: {cancelCommand}");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error sending command: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                Debug.WriteLine("The second serial port is not open or available.");
+            }
+
+            // Navigate to home screen
             var mainWindow = (MainWindow)Application.Current.MainWindow;
-            mainWindow.MainContent.Content = new HomeUserControl(); // Redirect to home
+            mainWindow.MainContent.Content = new HomeUserControl();
 
-            Dispose(); // Clean up resources
+            // Clean up resources
+            Dispose();
         }
 
         private void Loadsummary(string fileName, double totalPrice)
@@ -426,6 +465,55 @@ namespace kiosk_snapprint
             Dispose();
         }
 
+
+        private async Task SendTransactionAsync(string fileName, string pageSize, List<int> selectedPages,
+                                           string colorStatus, int copyCount, double totalPrice,
+                                           string action, decimal totalAmount)
+        {
+            // Define your PHP API URL
+            string url = "https://snapprintadmin.online/cancel_transaction.php"; // Replace with your actual API endpoint
+
+            // Prepare the JSON payload using the class properties
+            var transactionData = new
+            {
+                FileName = fileName,
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                ColorStatus = colorStatus,
+                CopyCount = copyCount,
+                Action = action,
+                TotalPrice = totalPrice,
+                TotalAmount = totalAmount
+            };
+
+            // Serialize the object to JSON format
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(transactionData);
+
+            using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(30) })
+            {
+                try
+                {
+                    // Create HTTP content with the serialized JSON payload
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    // Send the POST request to the API endpoint
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // Read the API response
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    // (Optional) Log or display the response for debugging
+                    Console.WriteLine($"API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors during the API call
+                    Console.WriteLine($"Error sending transaction data: {ex.Message}");
+                }
+            }
+        }
+
+      
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
