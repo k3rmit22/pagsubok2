@@ -79,7 +79,7 @@ namespace kiosk_snapprint
             while (true)
             {
                 await FetchAllCommands();
-                await Task.Delay(120000); // Fetch commands every 2 minutes
+                await Task.Delay(500); // Fetch commands every 2 minutes
             }
         }
 
