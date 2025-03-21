@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Text;
 using PdfiumViewer;
 using iText.Commons.Utils;
-using System.Windows.Navigation;
 
 
 
@@ -100,30 +99,27 @@ namespace kiosk_snapprint
         }
         private void ResetSystem()
         {
-            // Clear transaction data
             TransactionData.Reset();
 
-            // Reset any UI elements or variables if needed
             FileName = string.Empty;
             PageSize = string.Empty;
-            SelectedPages = new List<int>(); // Corrected
+            SelectedPages = new List<int>();
             ColorStatus = string.Empty;
             CopyCount = 0;
             TotalPrice = 0;
             Action = string.Empty;
             TotalAmount = 0;
 
-            // Refresh UI by forcing layout updates if necessary
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // Force UI update
-                Window mainWindow = Application.Current.MainWindow;
+                var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
-                    mainWindow.Content = new HomeUserControl(); // Reload HomeUserControl
+                    mainWindow.Content = new HomeUserControl();
                 }
             });
         }
+
 
 
 
@@ -252,18 +248,19 @@ namespace kiosk_snapprint
 
         private void NavigateToHomeUserControl()
         {
-            // Assuming the parent container is a Window (MainWindow) and it has a ContentControl or Frame for navigation
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            if (mainWindow != null)
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                // Assuming HomeUserControl is the UserControl you want to navigate to
-                HomeUserControl homeControl = new HomeUserControl();
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.Content = new HomeUserControl(); // Ensure proper initialization
+                }
+            });
 
-                // If using a ContentControl:
-                mainWindow.MainContent.Content = homeControl;
-
-                // If using a Frame:
-                // mainWindow.MainFrame.Content = homeControl;
+            // Only close if this is a separate window
+            if (this != Application.Current.MainWindow)
+            {
+                this.Close();
             }
         }
 
