@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.IO.Ports;
 
 namespace kiosk_snapprint
 {
@@ -13,8 +14,9 @@ namespace kiosk_snapprint
     /// </summary>
     public partial class paper_refill : UserControl
     {
-        // Dictionary to track the last sent command for each lifter
         private static Dictionary<int, string> lastSentCommands = new Dictionary<int, string>();
+        private static SerialPort serialPort;
+        private static bool isSerialPortOpen = false;  // Flag to track port status
 
         public paper_refill()
         {
@@ -23,39 +25,85 @@ namespace kiosk_snapprint
             // Initialize the last sent commands for lifters
             for (int lifterId = 1; lifterId <= 3; lifterId++)
             {
-                lastSentCommands[lifterId] = null; // Set initial state to null
+                lastSentCommands[lifterId] = null;
             }
+
+            // Open serial port only once
+            OpenSerialPort("COM6", 9600);
 
             // Start fetching commands asynchronously
             StartFetchingCommands();
         }
 
+        /// <summary>
+        /// Opens the serial port and keeps it open until navigation or app closure.
+        /// </summary>
+        private void OpenSerialPort(string portName, int baudRate)
+        {
+            if (serialPort == null)
+            {
+                serialPort = new SerialPort(portName, baudRate)
+                {
+                    DtrEnable = true,         // Data Terminal Ready
+                    RtsEnable = true,         // Request to Send
+                    Handshake = Handshake.None,
+                    ReadTimeout = 500,
+                    WriteTimeout = 500
+                };
+
+                try
+                {
+                    serialPort.Open();
+                    isSerialPortOpen = true;
+                    Debug.WriteLine($"Serial port {portName} opened successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to open serial port: {ex.Message}");
+                    MessageBox.Show($"Failed to open serial port: {ex.Message}", "Serial Port Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                Debug.WriteLine("Serial port already open.");
+            }
+        }
+
+        /// <summary>
+        /// Starts continuously fetching lifter commands every 2 minutes.
+        /// </summary>
         private async void StartFetchingCommands()
         {
-            Console.WriteLine("Fetching commands for lifters...");
+            Debug.WriteLine("Starting to fetch lifter commands...");
 
             while (true)
             {
                 await FetchAllCommands();
-                await Task.Delay(120000); // Wait for 5 seconds before fetching again
+                await Task.Delay(120000); // Fetch commands every 2 minutes
             }
         }
 
+        /// <summary>
+        /// Iterates over all lifters and fetches their commands.
+        /// </summary>
         private async Task FetchAllCommands()
         {
-            for (int lifterId = 1; lifterId <= 3; lifterId++) // Loop through all lifters
+            for (int lifterId = 1; lifterId <= 3; lifterId++)
             {
                 await FetchAndProcessCommand(lifterId);
             }
         }
 
+        /// <summary>
+        /// Fetches and processes the command for a specific lifter.
+        /// </summary>
+        /// <param name="lifterId">Lifter ID</param>
         private async Task FetchAndProcessCommand(int lifterId)
         {
+            string apiUrl = $"https://snapprintadmin.online/command.php?id={lifterId}";
+
             using (HttpClient client = new HttpClient())
             {
-                // API URL with lifter ID as a query parameter
-                string apiUrl = $"https://snapprintadmin.online/command.php?id={lifterId}";
-
                 try
                 {
                     HttpResponseMessage response = await client.GetAsync(apiUrl);
@@ -65,27 +113,23 @@ namespace kiosk_snapprint
                         string jsonResponse = await response.Content.ReadAsStringAsync();
                         Debug.WriteLine($"Lifter {lifterId} command: {jsonResponse}");
 
-                        // Extract the command (e.g., "1,refill")
-                        string rawCommand = jsonResponse.Replace("{\"command\":\"", "").Replace("\"}", "");
+                        // Extract the command properly
+                        string rawCommand = jsonResponse.Replace("{\"command\":\"", "").Replace("\"}", "").Trim();
 
-                        // Check if the command has changed
-                        if (lastSentCommands[lifterId] != rawCommand)
+                        if (!string.IsNullOrEmpty(rawCommand) && lastSentCommands[lifterId] != rawCommand)
                         {
-                            // Update the last sent command and send it to Arduino
                             lastSentCommands[lifterId] = rawCommand;
                             SendCommandToArduino(rawCommand);
-
-                            // Optionally update a label or UI element
                             UpdateLifterStatus(lifterId, rawCommand);
                         }
                         else
                         {
-                            Debug.WriteLine($"Lifter {lifterId}: Command has not changed, skipping.");
+                            Debug.WriteLine($"Lifter {lifterId}: No new command or invalid command.");
                         }
                     }
                     else
                     {
-                        Debug.WriteLine($"Error retrieving command for Lifter {lifterId}: {response.StatusCode}");
+                        Debug.WriteLine($"Failed to fetch command for Lifter {lifterId}: {response.StatusCode}");
                     }
                 }
                 catch (Exception ex)
@@ -95,46 +139,82 @@ namespace kiosk_snapprint
             }
         }
 
+        /// <summary>
+        /// Sends the command to the Arduino through the serial port.
+        /// </summary>
+        /// <param name="command">Command to send</param>
         private void SendCommandToArduino(string command)
         {
-            // Ensure proper COM port setup
-            using (System.IO.Ports.SerialPort port = new System.IO.Ports.SerialPort("COM6", 9600))
+            if (isSerialPortOpen && serialPort != null && serialPort.IsOpen)
             {
                 try
                 {
-                    port.Open();
-                    port.WriteLine(command); // Send the command to Arduino
-                    Console.WriteLine($"Command sent to Arduino: {command}");
-                    Debug.WriteLine($"Command Sent: {command}");
-                    port.Close();
+                    serialPort.WriteLine(command);
+                    Debug.WriteLine($"Command sent to Arduino: {command}");
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine($"Error sending command to Arduino: {ex.Message}");
                 }
             }
+            else
+            {
+                Debug.WriteLine("Serial port is closed or unavailable.");
+            }
         }
 
+        /// <summary>
+        /// Updates the UI with the current lifter status.
+        /// </summary>
+        /// <param name="lifterId">Lifter ID</param>
+        /// <param name="command">Command received</param>
         private void UpdateLifterStatus(int lifterId, string command)
         {
-            // Update a Label or TextBlock in your WPF UI for each lifter
             Application.Current.Dispatcher.Invoke(() =>
             {
                 Debug.WriteLine($"Updating UI for Lifter {lifterId} with command: {command}");
-                // Example: Use IDs to identify specific UI elements
-                if (lifterId == 1)
+
+                switch (lifterId)
                 {
-                    Lifter1Status.Text = $"Lifter 1: {command}";
-                }
-                else if (lifterId == 2)
-                {
-                    Lifter2Status.Text = $"Lifter 2: {command}";
-                }
-                else if (lifterId == 3)
-                {
-                    Lifter3Status.Text = $"Lifter 3: {command}";
+                    case 1:
+                        Lifter1Status.Text = $"Lifter 1: {command}";
+                        break;
+                    case 2:
+                        Lifter2Status.Text = $"Lifter 2: {command}";
+                        break;
+                    case 3:
+                        Lifter3Status.Text = $"Lifter 3: {command}";
+                        break;
                 }
             });
+        }
+
+        /// <summary>
+        /// Properly closes the serial port when navigating away or closing the WPF app.
+        /// </summary>
+        private void CloseSerialPort()
+        {
+            if (serialPort != null && serialPort.IsOpen)
+            {
+                try
+                {
+                    serialPort.Close();
+                    isSerialPortOpen = false;
+                    Debug.WriteLine("Serial port closed.");
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error closing serial port: {ex.Message}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Handles unloading event by closing the serial port properly.
+        /// </summary>
+        private void UserControl_Unloaded(object sender, RoutedEventArgs e)
+        {
+            CloseSerialPort();
         }
     }
 }

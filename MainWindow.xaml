@@ -89,9 +89,9 @@
 
 
                 <Button VerticalAlignment="Top" Height="160" Margin="-13,-13,0,0"
-                        Background="White" BorderBrush="Black" BorderThickness="0,0,0,0" Click="Button_Click_2" HorizontalAlignment="Left" Width="115">
+                        Background="White" BorderBrush="Black" BorderThickness="0,0,0,0" Click="Button_Click_2" HorizontalAlignment="Left" Width="158" Grid.ColumnSpan="2">
                     <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <Image Source="C:\Users\henry\Source\Repos\pagsubok2\settings-icon.png" Width="100" Height="100" Stretch="UniformToFill" />
+                        <Image Source="C:\Users\kalaw\source\repos\pagsubok2\settings-icon.png" Width="100" Height="100" Stretch="UniformToFill" />
                     </StackPanel>
                 </Button>
 

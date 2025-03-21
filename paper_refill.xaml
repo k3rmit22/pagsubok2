@@ -17,7 +17,7 @@
                HorizontalAlignment="Center"
                VerticalAlignment="Top" Margin="0,-20,0,0">
             <wpfAnimatedGif:ImageBehavior.AnimatedSource>
-                <BitmapImage UriSource="C:\Users\henry\Source\Repos\pagsubok2\maintenance_gif.gif" />
+                <BitmapImage UriSource="C:\Users\kalaw\source\repos\pagsubok2\maintenance_gif.gif" />
             </wpfAnimatedGif:ImageBehavior.AnimatedSource>
         </Image>
 
