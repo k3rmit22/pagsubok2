@@ -258,32 +258,39 @@ namespace kiosk_snapprint
         }
 
 
+        //private void NavigateToHomeUserControl()
+        //{
+        //    try
+        //    {
+        //        ResetSystem(FileName, PageSize, SelectedPages, ColorStatus, CopyCount, TotalPrice, Action);
+
+        //        var mainWindow = Application.Current.MainWindow as MainWindow;
+        //        if (mainWindow != null)
+        //        {
+        //            // Navigate to HomeUserControl
+        //            HomeUserControl homeControl = new HomeUserControl();
+        //            mainWindow.MainContent.Content = homeControl;
+
+        //            // Explicitly set focus to ensure interactivity
+        //            homeControl.Focus();
+        //        }
+        //        else
+        //        {
+        //            Debug.WriteLine("MainWindow is not properly initialized.");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Debug.WriteLine($"Navigation Error: {ex.Message}");
+        //    }
+        //}
+
         private void NavigateToHomeUserControl()
         {
-            try
-            {
-                ResetSystem(FileName, PageSize, SelectedPages, ColorStatus, CopyCount, TotalPrice, Action);
-
-                var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow != null)
-                {
-                    // Navigate to HomeUserControl
-                    HomeUserControl homeControl = new HomeUserControl();
-                    mainWindow.MainContent.Content = homeControl;
-
-                    // Explicitly set focus to ensure interactivity
-                    homeControl.Focus();
-                }
-                else
-                {
-                    Debug.WriteLine("MainWindow is not properly initialized.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Navigation Error: {ex.Message}");
-            }
+            var mainWindow = (MainWindow)Application.Current.MainWindow;
+            mainWindow.MainContent.Content = new HomeUserControl();
         }
+
 
 
     }
