@@ -9,6 +9,8 @@ using System.Net.Http;
 using System.Text;
 using PdfiumViewer;
 using iText.Commons.Utils;
+using System.Diagnostics;
+using System.Drawing.Imaging;
 
 
 
@@ -88,37 +90,16 @@ namespace kiosk_snapprint
             }
             finally
             {
-                ResetSystem(); // Reset system in finally block
+               
 
-                Dispatcher.Invoke(() =>
+                Dispatcher.BeginInvoke(() =>
                 {
                     ShowLoading(false); // Hide the loading overlay
                     NavigateToHomeUserControl(); // Navigate to home after reset
                 });
             }
         }
-        private void ResetSystem()
-        {
-            TransactionData.Reset();
-
-            FileName = string.Empty;
-            PageSize = string.Empty;
-            SelectedPages = new List<int>();
-            ColorStatus = string.Empty;
-            CopyCount = 0;
-            TotalPrice = 0;
-            Action = string.Empty;
-            TotalAmount = 0;
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow != null)
-                {
-                    mainWindow.Content = new HomeUserControl();
-                }
-            });
-        }
+      
 
 
 
@@ -190,13 +171,15 @@ namespace kiosk_snapprint
             printerSettings.DefaultPageSettings.Color = true; // Set to colored
         }
 
-       
+
 
 
         private void ShowLoading(bool isLoading)
         {
             LoadingOverlay.Visibility = isLoading ? Visibility.Visible : Visibility.Collapsed;
+            LoadingOverlay.IsHitTestVisible = isLoading; // Disable interaction when hidden
         }
+
 
         private async Task SendTransactionDataAsync(string fileName, string pageSize, List<int> selectedPages,
                                              string colorStatus, int copyCount, double totalPrice,
@@ -245,19 +228,61 @@ namespace kiosk_snapprint
             }
         }
 
+        private void ResetSystem(string FileName, string PageSize, List<int> SelectedPages,
+                                                  string ColorStatus, int CopyCount, double TotalPrice,
+                                                  string Action)
+        {
+            // Clear transaction data
+            TransactionData.Reset();
+
+            // Reset any UI elements or variables if needed
+            FileName = string.Empty;
+            PageSize = string.Empty;
+            SelectedPages.Clear();
+            ColorStatus = string.Empty;
+            CopyCount = 0;
+            TotalPrice = 0;
+            Action = string.Empty;
+
+
+            // Refresh UI by forcing layout updates if necessary
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Force UI update
+                Window mainWindow = Application.Current.MainWindow;
+                if (mainWindow != null)
+                {
+                    mainWindow.Content = new HomeUserControl(); // Reload HomeUserControl
+                }
+            });
+        }
+
 
         private void NavigateToHomeUserControl()
         {
-            ResetSystem(); // Reset the system before navigating to home
-
-            // Navigate to HomeUserControl
-            Application.Current.Dispatcher.Invoke(() =>
+            try
             {
-                var homeUserControl = new HomeUserControl();
-                Application.Current.MainWindow.Content = homeUserControl;
-            });
+                ResetSystem(FileName, PageSize, SelectedPages, ColorStatus, CopyCount, TotalPrice, Action);
 
-            this.Close(); // Close the current window after navigation
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    // Navigate to HomeUserControl
+                    HomeUserControl homeControl = new HomeUserControl();
+                    mainWindow.MainContent.Content = homeControl;
+
+                    // Explicitly set focus to ensure interactivity
+                    homeControl.Focus();
+                }
+                else
+                {
+                    Debug.WriteLine("MainWindow is not properly initialized.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Navigation Error: {ex.Message}");
+            }
         }
 
 

@@ -79,8 +79,11 @@ namespace kiosk_snapprint
                 ResetSystem(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action);
               
                 OverlayVisibility = Visibility.Collapsed; // Hide loading overlay
+                LoadingOverlay.IsHitTestVisible = false;
                 NavigateToHome();
-                this.Close(); // Close the window after all operations
+                await Task.Delay(100); // Allow UI navigation to complete
+                this.Close();
+
             }
         }
 
@@ -190,12 +193,33 @@ namespace kiosk_snapprint
         // Method to navigate back to Home UserControl
         private void NavigateToHome()
         {
-            // Assuming MainWindow contains a method called NavigateToUserControl
-            if (Application.Current.MainWindow is MainWindow mainWindow)
+            try
             {
-                mainWindow.NavigateToUserControl(new HomeUserControl());
+                ResetSystem(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action);
+
+                var mainWindow = Application.Current.MainWindow as MainWindow;
+                if (mainWindow != null)
+                {
+                    // Navigate to HomeUserControl
+                    HomeUserControl homeControl = new HomeUserControl();
+                    mainWindow.MainContent.Content = homeControl;
+
+                    // Explicitly set focus to ensure interactivity
+                    homeControl.Focus();
+                }
+                else
+                {
+                    Debug.WriteLine("MainWindow is not properly initialized.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Navigation Error: {ex.Message}");
             }
         }
+
+
+
 
         private void ResetSystem(string FileName, string PageSize, List<int> SelectedPages,
                                                     string ColorMode, int CopyCount, double TotalPrice,
