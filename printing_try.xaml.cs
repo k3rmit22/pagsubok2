@@ -99,30 +99,27 @@ namespace kiosk_snapprint
         }
         private void ResetSystem()
         {
-            // Clear transaction data
             TransactionData.Reset();
 
-            // Reset any UI elements or variables if needed
             FileName = string.Empty;
             PageSize = string.Empty;
-            SelectedPages = new List<int>(); // Corrected
+            SelectedPages = new List<int>();
             ColorStatus = string.Empty;
             CopyCount = 0;
             TotalPrice = 0;
             Action = string.Empty;
             TotalAmount = 0;
 
-            // Refresh UI by forcing layout updates if necessary
             Application.Current.Dispatcher.Invoke(() =>
             {
-                // Force UI update
-                Window mainWindow = Application.Current.MainWindow;
+                var mainWindow = Application.Current.MainWindow as MainWindow;
                 if (mainWindow != null)
                 {
-                    mainWindow.Content = new HomeUserControl(); // Reload HomeUserControl
+                    mainWindow.Content = new HomeUserControl();
                 }
             });
         }
+
 
 
 
@@ -251,12 +248,18 @@ namespace kiosk_snapprint
 
         private void NavigateToHomeUserControl()
         {
-            // Logic to navigate to HomeUserControl
-            // This could involve changing the content of a parent container, opening a new window, etc.
-            // Example:
-            var homeUserControl = new HomeUserControl();
-            Application.Current.MainWindow.Content = homeUserControl;
-            this.Close();
+            ResetSystem(); // Reset the system before navigating to home
+
+            // Navigate to HomeUserControl
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var homeUserControl = new HomeUserControl();
+                Application.Current.MainWindow.Content = homeUserControl;
+            });
+
+            this.Close(); // Close the current window after navigation
         }
+
+
     }
 }
