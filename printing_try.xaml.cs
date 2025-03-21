@@ -248,21 +248,18 @@ namespace kiosk_snapprint
 
         private void NavigateToHomeUserControl()
         {
+            ResetSystem(); // Reset the system before navigating to home
+
+            // Navigate to HomeUserControl
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow != null)
-                {
-                    mainWindow.Content = new HomeUserControl(); // Ensure proper initialization
-                }
+                var homeUserControl = new HomeUserControl();
+                Application.Current.MainWindow.Content = homeUserControl;
             });
 
-            // Only close if this is a separate window
-            if (this != Application.Current.MainWindow)
-            {
-                this.Close();
-            }
+            this.Close(); // Close the current window after navigation
         }
+
 
     }
 }
