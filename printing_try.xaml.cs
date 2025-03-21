@@ -253,15 +253,15 @@ namespace kiosk_snapprint
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                Window mainWindow = Application.Current.MainWindow;
-                if (mainWindow != null)
-                {
-                    mainWindow.Content = new HomeUserControl();
-                }
-            });
+                // Close the current window
+                this.Close();
 
-            this.Close();
+                // Re-open the main window
+                MainWindow mainWindow = new MainWindow();
+                mainWindow.Show();
+            });
         }
+
 
     }
 }
