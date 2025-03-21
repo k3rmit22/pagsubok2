@@ -49,7 +49,7 @@
                         FontWeight="Bold" 
                         Foreground="Black"
                         BorderBrush="Black" 
-                        BorderThickness="5">
+                        BorderThickness="5" Click="Button_Click_1">
                     <Button.Background>
                         <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report_not.png"/>
                     </Button.Background>
@@ -68,7 +68,7 @@
                         FontWeight="Bold" 
                         Foreground="Black"
                         BorderBrush="Black" 
-                        BorderThickness="5">
+                        BorderThickness="5" Click="Button_Click_2">
                     <Button.Background>
                         <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report_hardcopy.png"/>
                     </Button.Background>
@@ -87,7 +87,7 @@
                         FontWeight="Bold" 
                         Foreground="Black"
                         BorderBrush="Black" 
-                        BorderThickness="5">
+                        BorderThickness="5" Click="Button_Click_3">
                     <Button.Background>
                         <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report3.png"/>
                     </Button.Background>
