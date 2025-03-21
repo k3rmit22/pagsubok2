@@ -64,7 +64,7 @@ namespace kiosk_snapprint
             {
                 Dispatcher.Invoke(() => ShowLoading(true)); // Show the loading overlay
 
-                await Task.Delay(500); // Optional delay for smoother UI update
+                await Task.Delay(300); // Optional delay for smoother UI update
 
                 await Task.Run(() => PrintPdfFile(filePath)); // Run the printing task
 
