@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Text;
 using PdfiumViewer;
 using iText.Commons.Utils;
+using System.Windows.Navigation;
 
 
 
@@ -251,17 +252,20 @@ namespace kiosk_snapprint
 
         private void NavigateToHomeUserControl()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            // Assuming the parent container is a Window (MainWindow) and it has a ContentControl or Frame for navigation
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            if (mainWindow != null)
             {
-                // Close the current window
-                this.Close();
+                // Assuming HomeUserControl is the UserControl you want to navigate to
+                HomeUserControl homeControl = new HomeUserControl();
 
-                // Re-open the main window
-                MainWindow mainWindow = new MainWindow();
-                mainWindow.Show();
-            });
+                // If using a ContentControl:
+                mainWindow.MainContent.Content = homeControl;
+
+                // If using a Frame:
+                // mainWindow.MainFrame.Content = homeControl;
+            }
         }
-
 
     }
 }
