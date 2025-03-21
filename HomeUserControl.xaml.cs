@@ -19,7 +19,7 @@ namespace kiosk_snapprint
     /// Interaction logic for HomeUserControl.xaml
     /// </summary>
     public partial class HomeUserControl : UserControl
-    
+    {
         public HomeUserControl()
         {
             InitializeComponent();
