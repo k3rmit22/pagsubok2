@@ -193,29 +193,10 @@ namespace kiosk_snapprint
         // Method to navigate back to Home UserControl
         private void NavigateToHome()
         {
-            try
-            {
-                ResetSystem(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action);
+            var mainWindow = (MainWindow)Application.Current.MainWindow;
 
-                var mainWindow = Application.Current.MainWindow as MainWindow;
-                if (mainWindow != null)
-                {
-                    // Navigate to HomeUserControl
-                    HomeUserControl homeControl = new HomeUserControl();
-                    mainWindow.MainContent.Content = homeControl;
-
-                    // Explicitly set focus to ensure interactivity
-                    homeControl.Focus();
-                }
-                else
-                {
-                    Debug.WriteLine("MainWindow is not properly initialized.");
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Navigation Error: {ex.Message}");
-            }
+            // Replace `HomeUserControl` with the appropriate UserControl for your home page
+            mainWindow.MainContent.Content = new HomeUserControl();
         }
 
 

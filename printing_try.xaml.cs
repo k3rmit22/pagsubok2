@@ -288,7 +288,10 @@ namespace kiosk_snapprint
         private void NavigateToHomeUserControl()
         {
             var mainWindow = (MainWindow)Application.Current.MainWindow;
+
+            // Replace `HomeUserControl` with the appropriate UserControl for your home page
             mainWindow.MainContent.Content = new HomeUserControl();
+            this.Close();
         }
 
 

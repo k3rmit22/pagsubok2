@@ -32,7 +32,7 @@
                         BorderBrush="Black" 
                         BorderThickness="5" Click="Button_Click">
                     <Button.Background>
-                        <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report_payment.png"/>
+                        <ImageBrush ImageSource="C:\Users\kalaw\Source\Repos\pagsubok2\report_payment.png"/>
                     </Button.Background>
                 </Button>
                 <TextBlock Text="If you received an incorrect&#xA; refund amount, select this option." 
@@ -51,7 +51,7 @@
                         BorderBrush="Black" 
                         BorderThickness="5" Click="Button_Click_1">
                     <Button.Background>
-                        <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report_not.png"/>
+                        <ImageBrush ImageSource="C:\Users\kalaw\Source\Repos\pagsubok2\report_not.png"/>
                     </Button.Background>
                 </Button>
                 <TextBlock Text="Use this option if you're &#xA; not satisfied with printing quality." 
@@ -70,7 +70,7 @@
                         BorderBrush="Black" 
                         BorderThickness="5" Click="Button_Click_2">
                     <Button.Background>
-                        <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report_hardcopy.png"/>
+                        <ImageBrush ImageSource="C:\Users\kalaw\Source\Repos\pagsubok2\report_hardcopy.png"/>
                     </Button.Background>
                 </Button>
                 <TextBlock Text="If payment went through but you didn't &#xA; receive the hard copy, click here." 
@@ -89,7 +89,7 @@
                         BorderBrush="Black" 
                         BorderThickness="5" Click="Button_Click_3">
                     <Button.Background>
-                        <ImageBrush ImageSource="C:\Users\henry\Source\Repos\pagsubok2\report3.png"/>
+                        <ImageBrush ImageSource="C:\Users\kalaw\Source\Repos\pagsubok2\report3.png"/>
                     </Button.Background>
                 </Button>
                 <TextBlock Text="click here if you experience an system error." 
