@@ -82,6 +82,8 @@ namespace kiosk_snapprint
                     TotalAmount
                 ); // Send transaction data after printing
 
+                await UpdatePaperStockAsync(PageSize, SelectedPages, CopyCount);
+
                 await Task.Delay(500); // Allow UI to process before resetting
             }
             catch (Exception ex)
@@ -228,6 +230,46 @@ namespace kiosk_snapprint
             }
         }
 
+        private async Task UpdatePaperStockAsync(string pageSize, List<int> selectedPages, int copyCount)
+        {
+            // Define your updated PHP API URL for paper stock deduction
+            string url = "https://snapprintadmin.online/update_paper_stock.php"; // Replace with your actual API endpoint
+
+            // Prepare the JSON payload with only the necessary data
+            var paperStockData = new
+            {
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                CopyCount = copyCount
+            };
+
+            // Serialize the object to JSON format
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(paperStockData);
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    // Create HTTP content with the JSON payload
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    // Send the POST request to the API endpoint
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // Read the API response
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    // Debugging output
+                    Console.WriteLine($"Paper Stock API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors
+                    Console.WriteLine($"Error updating paper stock: {ex.Message}");
+                }
+            }
+        }
+
         private void ResetSystem(string FileName, string PageSize, List<int> SelectedPages,
                                                   string ColorStatus, int CopyCount, double TotalPrice,
                                                   string Action)
@@ -258,32 +300,7 @@ namespace kiosk_snapprint
         }
 
 
-        //private void NavigateToHomeUserControl()
-        //{
-        //    try
-        //    {
-        //        ResetSystem(FileName, PageSize, SelectedPages, ColorStatus, CopyCount, TotalPrice, Action);
-
-        //        var mainWindow = Application.Current.MainWindow as MainWindow;
-        //        if (mainWindow != null)
-        //        {
-        //            // Navigate to HomeUserControl
-        //            HomeUserControl homeControl = new HomeUserControl();
-        //            mainWindow.MainContent.Content = homeControl;
-
-        //            // Explicitly set focus to ensure interactivity
-        //            homeControl.Focus();
-        //        }
-        //        else
-        //        {
-        //            Debug.WriteLine("MainWindow is not properly initialized.");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Debug.WriteLine($"Navigation Error: {ex.Message}");
-        //    }
-        //}
+        
 
         private void NavigateToHomeUserControl()
         {

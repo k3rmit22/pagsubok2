@@ -69,6 +69,7 @@ namespace kiosk_snapprint
                 // Perform printing and send transaction data
                 await PrintDocumentAsync();
                 await SendTransactionDataAsync(FileName, PageSize, SelectedPages, ColorMode, CopyCount, TotalPrice, Action, TotalAmount);
+                await UpdatePaperStockAsync(PageSize, SelectedPages, CopyCount);
             }
             catch (Exception ex)
             {
@@ -174,6 +175,46 @@ namespace kiosk_snapprint
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error sending transaction data: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task UpdatePaperStockAsync(string pageSize, List<int> selectedPages, int copyCount)
+        {
+            // Define your updated PHP API URL for paper stock deduction
+            string url = "https://snapprintadmin.online/update_paper_stock.php"; // Replace with your actual API endpoint
+
+            // Prepare the JSON payload with only the necessary data
+            var paperStockData = new
+            {
+                PageSize = pageSize,
+                SelectedPages = selectedPages,
+                CopyCount = copyCount
+            };
+
+            // Serialize the object to JSON format
+            string jsonPayload = Newtonsoft.Json.JsonConvert.SerializeObject(paperStockData);
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    // Create HTTP content with the JSON payload
+                    StringContent content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                    // Send the POST request to the API endpoint
+                    HttpResponseMessage response = await client.PostAsync(url, content);
+
+                    // Read the API response
+                    string responseString = await response.Content.ReadAsStringAsync();
+
+                    // Debugging output
+                    Console.WriteLine($"Paper Stock API Response: {responseString}");
+                }
+                catch (Exception ex)
+                {
+                    // Handle errors
+                    Console.WriteLine($"Error updating paper stock: {ex.Message}");
                 }
             }
         }
